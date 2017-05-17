@@ -1,14 +1,7 @@
 package Processing;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 
-import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
@@ -52,33 +45,6 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
         }
 	}
 	
-	public BufferedImage getFirstFrame(File file) {
-		BufferedImage pic = null;
-		FFmpegFrameGrabber grabFrame = new FFmpegFrameGrabber(file.getAbsolutePath());
-		String filepath = System.getProperty("user.dir") + "/image.jpg";
-		try {
-			grabFrame.start();
-			FFmpegFrameRecorder recordFrame = new FFmpegFrameRecorder(filepath ,grabFrame.getImageWidth(), grabFrame.getImageHeight());
-			recordFrame.start();
-			Frame frame = grabFrame.grabImage();
-			recordFrame.record(frame,grabFrame.getPixelFormat());
-			grabFrame.stop();
-			grabFrame.release();
-			recordFrame.stop();
-			recordFrame.release();
-		} catch (org.bytedeco.javacv.FrameRecorder.Exception | org.bytedeco.javacv.FrameGrabber.Exception e1) {
-			e1.printStackTrace();
-		}
-		File image = new File(filepath);
-		try {
-			pic = ImageIO.read(image);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		return pic;
-	}
-	
 	public void initializeFilter(String Filter) {
 		// Set the FFmpeg effect/filter that will be applied
 		filter = new FFmpegFrameFilter(Filter, videoGrab.getImageWidth(), videoGrab.getImageHeight());
@@ -113,8 +79,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 		}
 		return extension;
 	}
-	
-	
+		
 	@Override
 	protected Void doInBackground() throws Exception {
 		start();

@@ -6,13 +6,8 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import javax.swing.*;
 
-import org.bytedeco.javacpp.opencv_core.Mat;
-import org.bytedeco.javacpp.opencv_videoio.VideoCapture;
-
 import Processing.VideoProcessor;
 
-import javax.imageio.ImageIO;
-import javafx.*;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -23,7 +18,6 @@ import javafx.scene.media.MediaView;
 
 
 public class UI extends JFrame implements Runnable {
-     
     // GUI 
     private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels; 
     private JButton buttonPlayStop, buttonPlay, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
@@ -35,15 +29,12 @@ public class UI extends JFrame implements Runnable {
     private int vidWidth, vidHeight;
     private boolean playing;
     private File file;
-    private BufferedImage pic;
     private Container container;
-    private ImageIcon image;
-    private VideoCapture vid;
     private VideoProcessor processor;
     private String filter;
     private UI ui;
+    private BufferedImage pic;
     
-
     //---@Rain---
     private Media media;
     private MediaPlayer player;
@@ -104,9 +95,7 @@ public class UI extends JFrame implements Runnable {
         buttonPluginFlip.addActionListener(l_handler); 
         buttonPluginTelevision.addActionListener(l_handler); 
         buttonPluginEdgeDetector.addActionListener(l_handler); 
-        buttonPluginDifference.addActionListener(l_handler); 
-        
-        
+        buttonPluginDifference.addActionListener(l_handler);      
 
         // Panels 
         panelButton = new JPanel(); 
@@ -131,13 +120,9 @@ public class UI extends JFrame implements Runnable {
         filterOptions.add(buttonPluginEdgeDetector); 
         filterOptions.add(buttonPluginDifference);
         
-        pic = null;
-        
         panelLabels = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelLabels.add(labelCurrentFilter);
         panelLabels.add(labelProcessing);
-         
-        
 
         panelVideoButtons = new JPanel(new BorderLayout());
         panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
@@ -165,8 +150,7 @@ public class UI extends JFrame implements Runnable {
 		int result = fileChooser.showOpenDialog( this );
 		  
 		if ( result == JFileChooser.CANCEL_OPTION ) {
-		// If the user clicks cancel
-
+			// If the user clicks cancel
 			file = null;
 		} else {
 			// If the user chooses a file
@@ -176,50 +160,26 @@ public class UI extends JFrame implements Runnable {
 	        view = new MediaView(player);
 	        BorderPane root = new BorderPane();
 	        root.getChildren().add(view);
-	        Scene scene = new Scene(root, 500, 500, true);
+	        
 	        Platform.runLater(new Runnable() {
 	            @Override 
 	            public void run() {
+	            	Scene scene = new Scene(root, 500, 500, true);
 	            	panelPlayer.setSize(1000,1000);
-	            	panelPlayer.setScene(scene);
-	                    
+	            	panelPlayer.setScene(scene);   
 	            }
-	          });
+	        });
  
-	        container.add(panelPlayer, BorderLayout.CENTER);       
-			
-			/*
-			try {
-				
-				
-				pic = ImageIO.read(file);
-				if(pic != null) {
-					panelVideoButtons = new JPanel(new BorderLayout());
-
-					image = new ImageIcon(pic);
-					JLabel picLabel = new JLabel(image);
-					panelVideoButtons.add(picLabel, BorderLayout.NORTH);
-					panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
-					panelVideoButtons.add(panelLabels, BorderLayout.CENTER);
-					container.removeAll();;  
-					container.setLayout(new BorderLayout()); 
-					container.add(panelVideoButtons, BorderLayout.CENTER);
-					container.add(filterOptions, BorderLayout.WEST);
-					vidHeight = pic.getHeight();
-					vidWidth = pic.getWidth();
-					setSize(vidWidth+125,vidHeight+100);
-				} else {
-					System.out.println("You did not select an image file");
-				}
-			} catch (IOException e) {
+	        container.add(panelPlayer, BorderLayout.CENTER);
 
 		/*} else {
 			// If the user chooses a file
 			file = fileChooser.getSelectedFile();
 			processor = new VideoProcessor(file.getName(), ui);
-			pic = processor.getFirstFrame(file);
+			ImageProcessing imageproc = new ImageProcessing();
+			pic = imageproc.getFirstFrame(file);
 			if(pic != null) {
-				BufferedImage resized = scale(pic,640,640);
+				BufferedImage resized = imageproc.scale(pic,640,640);
 				image = new ImageIcon(resized);
 				JLabel picLabel = new JLabel(image);
 				panelCenter.add(picLabel, BorderLayout.NORTH);
@@ -233,14 +193,7 @@ public class UI extends JFrame implements Runnable {
 				vidHeight = resized.getHeight();
 				vidWidth = resized.getWidth();
 				setSize(vidWidth+125,vidHeight+100);
-			} else {*/
-				System.out.println("You did not select an image file");
-			}
-			*/
-			
-			
-			
-			
+			} else {*/	
 		}  
     }
      
@@ -272,12 +225,9 @@ public class UI extends JFrame implements Runnable {
                     player.stop();
                 } 
             } else if (a_event.getSource() == buttonOpenFile) {
-
-            	
-             System.out.println("opening file");
+            	System.out.println("opening file");
             	final JFXPanel panelPlayer = new JFXPanel(); 
             	openFile(panelPlayer);
-            	openFile();
             } else if (a_event.getSource() == buttonSave) {
             	if (file == null) {
             		JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
@@ -338,58 +288,5 @@ public class UI extends JFrame implements Runnable {
                 labelCurrentFilter.setText("Current filter: Difference"); 
             } 
         } 
-    }
-    public BufferedImage scale(BufferedImage img, int targetWidth, int targetHeight) {
-
-        int type = (img.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-        BufferedImage ret = img;
-        BufferedImage scratchImage = null;
-        Graphics2D g2 = null;
-
-        int w = img.getWidth();
-        int h = img.getHeight();
-
-        int prevW = w;
-        int prevH = h;
-
-        do {
-            if (w > targetWidth) {
-                w /= 2;
-                w = (w < targetWidth) ? targetWidth : w;
-            }
-
-            if (h > targetHeight) {
-                h /= 2;
-                h = (h < targetHeight) ? targetHeight : h;
-            }
-
-            if (scratchImage == null) {
-                scratchImage = new BufferedImage(w, h, type);
-                g2 = scratchImage.createGraphics();
-            }
-
-            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            g2.drawImage(ret, 0, 0, w, h, 0, 0, prevW, prevH, null);
-
-            prevW = w;
-            prevH = h;
-            ret = scratchImage;
-        } while (w != targetWidth || h != targetHeight);
-
-        if (g2 != null) {
-            g2.dispose();
-        }
-
-        if (targetWidth != ret.getWidth() || targetHeight != ret.getHeight()) {
-            scratchImage = new BufferedImage(targetWidth, targetHeight, type);
-            g2 = scratchImage.createGraphics();
-            g2.drawImage(ret, 0, 0, null);
-            g2.dispose();
-            ret = scratchImage;
-        }
-
-        return ret;
-
     }
 }

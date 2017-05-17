@@ -11,15 +11,21 @@ import org.bytedeco.javacpp.opencv_videoio.VideoCapture;
 
 import Processing.VideoProcessor;
 
-import javax.media.*;
 import javax.imageio.ImageIO;
 import javafx.*;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 
 
 public class UI extends JFrame implements Runnable {
      
     // GUI 
-    private JPanel panelButton, filterOptions, panelCenter, panelLabels; 
+    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels; 
     private JButton buttonPlayStop, buttonPlay, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
                     buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
@@ -37,38 +43,22 @@ public class UI extends JFrame implements Runnable {
     private String filter;
     private UI ui;
     
+
+    //---@Rain---
+    private Media media;
+    private MediaPlayer player;
+    private MediaView view;
+    //---@Rain---
+         
     public UI() { 
         ui = this;
         loadGUI(); 
          
         thread = new Thread(this);
         thread.start();
-        playing = false;
-        
+        playing = false; 
         setLayout(new BorderLayout());
-        
-        // COULD TRY JAVA FX INSTEAD OF SWING
-    	
-    	/*Media media = new Media(new File("AHS.mp4").toURI().toString());
-
-        MediaPlayer mediaPlayer = new MediaPlayer(media);
-        mediaPlayer.setAutoPlay(true);
-        MediaView mediaView = new MediaView(mediaPlayer);
-
-        BorderPane borderPane = new BorderPane();
-        borderPane.setCenter(mediaView);
-        borderPane.setBottom(addToolBar());
-
-        borderPane.setStyle("-fx-background-color: Black");
-
-        Scene scene = new Scene(borderPane, 600, 600);
-        scene.setFill(Color.BLACK);*/
-
-        //primaryStage.setTitle("Media Player!");
-        //primaryStage.setScene(scene);
-       // primaryStage.show();
-
-      
+ 
     }
      
     private void loadGUI() {
@@ -115,7 +105,9 @@ public class UI extends JFrame implements Runnable {
         buttonPluginTelevision.addActionListener(l_handler); 
         buttonPluginEdgeDetector.addActionListener(l_handler); 
         buttonPluginDifference.addActionListener(l_handler); 
-         
+        
+        
+
         // Panels 
         panelButton = new JPanel(); 
         panelButton.add(buttonPlay);
@@ -145,32 +137,83 @@ public class UI extends JFrame implements Runnable {
         panelLabels.add(labelCurrentFilter);
         panelLabels.add(labelProcessing);
          
-        panelCenter = new JPanel(new BorderLayout());
-        panelCenter.add(panelButton, BorderLayout.SOUTH);
-        panelCenter.add(panelLabels, BorderLayout.CENTER);
+        
+
+        panelVideoButtons = new JPanel(new BorderLayout());
+        panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
+        panelVideoButtons.add(panelLabels, BorderLayout.CENTER);
+        panelVideoButtons.setSize(200, 200);
         
         container = getContentPane(); 
         container.setLayout(new BorderLayout()); 
-        container.add(panelCenter, BorderLayout.CENTER);
-        container.add(filterOptions, BorderLayout.WEST);
         
-        vidHeight = 640;
-        vidWidth = 640;
+        container.add(filterOptions, BorderLayout.WEST);
+        container.add(panelVideoButtons, BorderLayout.SOUTH);
+        
+        vidHeight = 400;
+        vidWidth = 720;
         
         setSize(vidWidth+125,vidHeight+100); 
         setResizable(false); 
-        setVisible(true);
+        setVisible(true);      
+
     }
   
-    private void openFile() {      
+    private void openFile(JFXPanel panelPlayer) {      
 		JFileChooser fileChooser = new JFileChooser();
-		  
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		int result = fileChooser.showOpenDialog( this );
 		  
 		if ( result == JFileChooser.CANCEL_OPTION ) {
 		// If the user clicks cancel
+
+			file = null;
 		} else {
+			// If the user chooses a file
+			file = fileChooser.getSelectedFile();
+			media = new Media(file.toURI().toString());
+	        player = new MediaPlayer(media);
+	        view = new MediaView(player);
+	        BorderPane root = new BorderPane();
+	        root.getChildren().add(view);
+	        Scene scene = new Scene(root, 500, 500, true);
+	        Platform.runLater(new Runnable() {
+	            @Override 
+	            public void run() {
+	            	panelPlayer.setSize(1000,1000);
+	            	panelPlayer.setScene(scene);
+	                    
+	            }
+	          });
+ 
+	        container.add(panelPlayer, BorderLayout.CENTER);       
+			
+			/*
+			try {
+				
+				
+				pic = ImageIO.read(file);
+				if(pic != null) {
+					panelVideoButtons = new JPanel(new BorderLayout());
+
+					image = new ImageIcon(pic);
+					JLabel picLabel = new JLabel(image);
+					panelVideoButtons.add(picLabel, BorderLayout.NORTH);
+					panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
+					panelVideoButtons.add(panelLabels, BorderLayout.CENTER);
+					container.removeAll();;  
+					container.setLayout(new BorderLayout()); 
+					container.add(panelVideoButtons, BorderLayout.CENTER);
+					container.add(filterOptions, BorderLayout.WEST);
+					vidHeight = pic.getHeight();
+					vidWidth = pic.getWidth();
+					setSize(vidWidth+125,vidHeight+100);
+				} else {
+					System.out.println("You did not select an image file");
+				}
+			} catch (IOException e) {
+
+		/*} else {
 			// If the user chooses a file
 			file = fileChooser.getSelectedFile();
 			processor = new VideoProcessor(file.getName(), ui);
@@ -190,9 +233,14 @@ public class UI extends JFrame implements Runnable {
 				vidHeight = resized.getHeight();
 				vidWidth = resized.getWidth();
 				setSize(vidWidth+125,vidHeight+100);
-			} else {
+			} else {*/
 				System.out.println("You did not select an image file");
 			}
+			*/
+			
+			
+			
+			
 		}  
     }
      
@@ -215,13 +263,20 @@ public class UI extends JFrame implements Runnable {
         public void actionPerformed(ActionEvent a_event) { 
         	if (a_event.getSource() == buttonPlay) {
         		if(!playing){ 
-                    playing = true;                      
+                    playing = true;  
+                    player.play();
                 } 
         	} else if(a_event.getSource() == buttonPlayStop) {
                 if(playing){ 
-                    playing = false;                      
+                    playing = false;       
+                    player.stop();
                 } 
             } else if (a_event.getSource() == buttonOpenFile) {
+
+            	
+             System.out.println("opening file");
+            	final JFXPanel panelPlayer = new JFXPanel(); 
+            	openFile(panelPlayer);
             	openFile();
             } else if (a_event.getSource() == buttonSave) {
             	if (file == null) {

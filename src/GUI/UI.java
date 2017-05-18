@@ -7,7 +7,6 @@ import java.io.*;
 import javax.swing.*;
 
 import Processing.VideoProcessor;
-
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -151,7 +150,6 @@ public class UI extends JFrame implements Runnable {
 		  
 		if ( result == JFileChooser.CANCEL_OPTION ) {
 			// If the user clicks cancel
-			file = null;
 		} else {
 			// If the user chooses a file
 			file = fileChooser.getSelectedFile();
@@ -215,15 +213,23 @@ public class UI extends JFrame implements Runnable {
     private class ButtonHandler implements ActionListener {
         public void actionPerformed(ActionEvent a_event) { 
         	if (a_event.getSource() == buttonPlay) {
-        		if(!playing){ 
-                    playing = true;  
-                    player.play();
-                } 
+        		if (media != null) {
+	        		if(!playing){ 
+	                    playing = true;  
+	                    player.play();
+	                }
+        		} else {
+        			JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
+        		}
         	} else if(a_event.getSource() == buttonPlayStop) {
-                if(playing){ 
-                    playing = false;       
-                    player.stop();
-                } 
+        		if (media != null) {
+	        		if(playing){ 
+	                    playing = false;       
+	                    player.stop();
+	                }
+        		} else {
+        			JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
+        		}
             } else if (a_event.getSource() == buttonOpenFile) {
             	System.out.println("opening file");
             	final JFXPanel panelPlayer = new JFXPanel(); 
@@ -236,7 +242,7 @@ public class UI extends JFrame implements Runnable {
             			JOptionPane.showMessageDialog(ui, "You have not selected a filter.");
             		} else {
             			updateLabel("Saving Video......");
-            			processor = new VideoProcessor(file.getName(), ui);
+            			processor = new VideoProcessor(file.getAbsolutePath(), ui);
             			// Need to add shared filter that changes when you push the filter buttons
             			processor.initializeFilter(filter);
             			processor.execute();

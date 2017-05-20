@@ -39,6 +39,7 @@ public class UI extends JFrame implements Runnable {
     private Media media;
     private MediaPlayer player;
     private MediaView view;
+    private JFXPanel panelPlayer;
     //---@Rain---
          
     public UI() { 
@@ -137,6 +138,7 @@ public class UI extends JFrame implements Runnable {
         
         vidHeight = 400;
         vidWidth = 720;
+        panelPlayer = new JFXPanel(); 
         
         setSize(vidWidth+125,vidHeight+100); 
         setResizable(false); 
@@ -144,12 +146,15 @@ public class UI extends JFrame implements Runnable {
 
     }
   
-    private void openFile(JFXPanel panelPlayer) {      
+    private void openFile() {
+    	if (playing) {
+    		player.stop();
+    	}
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		int result = fileChooser.showOpenDialog( this );
 		  
-		if ( result == JFileChooser.CANCEL_OPTION ) {
+		if (result == JFileChooser.CANCEL_OPTION) {
 			// If the user clicks cancel
 			file = null;
 		} else {
@@ -171,7 +176,9 @@ public class UI extends JFrame implements Runnable {
 	        });
  
 	        container.add(panelPlayer, BorderLayout.CENTER);
-
+	        container.validate();
+	        container.repaint();
+	        
 		/*} else {
 			// If the user chooses a file
 			file = fileChooser.getSelectedFile();
@@ -221,13 +228,12 @@ public class UI extends JFrame implements Runnable {
                 } 
         	} else if(a_event.getSource() == buttonPlayStop) {
                 if(playing){ 
-                    playing = false;       
+                    playing = false;      
                     player.stop();
                 } 
             } else if (a_event.getSource() == buttonOpenFile) {
             	System.out.println("opening file");
-            	final JFXPanel panelPlayer = new JFXPanel(); 
-            	openFile(panelPlayer);
+            	openFile();
             } else if (a_event.getSource() == buttonSave) {
             	if (file == null) {
             		JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");

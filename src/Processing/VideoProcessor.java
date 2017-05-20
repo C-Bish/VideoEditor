@@ -9,10 +9,10 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameFilter.Exception;
 
 import GUI.UI;
+import Processing.VideoProcessor;
 
 import org.bytedeco.javacpp.avcodec;
 import org.bytedeco.javacv.*;
-import Processing.VideoProcessor;
 
 public class VideoProcessor extends SwingWorker<Void, Integer> {
 	
@@ -30,6 +30,8 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 		video = new File(filename);
 		videoGrab = new FFmpegFrameGrabber(video.getAbsolutePath());
 		ext = getFileExtension(filename);
+		System.out.println(video.getAbsolutePath());
+		System.out.println(ext);
 		try {
 			videoGrab.start();
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {

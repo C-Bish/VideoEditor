@@ -1,6 +1,8 @@
 package Processing;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
@@ -9,12 +11,11 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameFilter.Exception;
 
 import GUI.UI;
-import Processing.VideoProcessor;
 
 import org.bytedeco.javacpp.avcodec;
 import org.bytedeco.javacv.*;
 
-public class VideoProcessor extends SwingWorker<Void, Integer> {
+public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	
 	private FFmpegFrameFilter filter;
 	private FFmpegFrameRecorder videoRecorder;
@@ -24,9 +25,8 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	private String ext;
 	private Long startTime;
 	private UI ui;
-	private String path;
     
-	public VideoProcessor(String filename, UI ui) {
+	public ParallelProcessor(String filename, UI ui) {
 		this.ui = ui;
 		video = new File(filename);
 		videoGrab = new FFmpegFrameGrabber(video.getAbsolutePath());
@@ -44,10 +44,6 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
         if (!Directory.exists()) {
             Directory.mkdirs();
         }
-	}
-	
-	public File getFile() {
-		 return new File(path);
 	}
 	
 	public void initializeFilter(String Filter) {
@@ -93,38 +89,45 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	
 	@Override
 	protected void done() {
-		if (ui.cancelled) {
-			System.out.println(path);
-			File output = new File(path);
-		} else {
-			long time = System.currentTimeMillis() - startTime;
-			System.out.println("Video filtering took " + (time/1000) + " seconds.");
-			ui.updateLabel("");
-			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");	
-		}
+		long time = System.currentTimeMillis() - startTime;
+		System.out.println("Video filtering took " + (time/1000) + " seconds.");
+		ui.updateLabel("");
+		JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");	
 	}
 
 	public void start() {
-		Frame frame;
 		try {
 			System.out.println("Starting to process video: " + video.getName() + ".....");
-            path = Directory + "/video" + System.currentTimeMillis() + "." + ext;
+            String path = Directory + "/video" + System.currentTimeMillis() + "." + ext;
             initVideoRecorder(path);    
             
             startTime = System.currentTimeMillis();
             System.out.println("There is " + videoGrab.getAudioChannels() + " audio channel");
             
-            while (videoGrab.grab() != null) {
-                frame = videoGrab.grabImage();
-              
-                if (frame != null) {
-                    filter.push(frame);
-                    Frame filterFrame;
-                    filterFrame = filter.pull();
-                    videoRecorder.setTimestamp(videoGrab.getTimestamp());
-                    videoRecorder.record(filterFrame, videoGrab.getPixelFormat());
-                }
+            //ArrayList<Frame> frames = new ArrayList<>();     
+ 			//ConcurrentLinkedQueue<Frame> threadSafeFrames = new ConcurrentLinkedQueue<>();
+ 			//threadSafeFrames.addAll(frames);
+ 			//System.out.println("There are " + threadSafeFrames.size() + " to process");
+ 			
+            ArrayList<Thread> threads = new ArrayList<>();
+            int numThreads = Runtime.getRuntime().availableProcessors();
+            System.out.println(numThreads);
+            
+            for (int i = 0; i < 2; i++) {
+            	///SharingWorker w = new SharingWorker(threadSafeFrames);
+            	Worker w = new Worker();
+            	threads.add(w);
+            	w.start();     
             }
+            
+            for (int i = 0; i < threads.size(); i++)  {
+    			Thread w = threads.get(i);
+    			try {
+    				w.join();
+    			} catch (InterruptedException e) {
+    				e.printStackTrace();
+    			}
+    		}
             filter.stop();
             videoRecorder.stop();
             videoRecorder.release();
@@ -150,6 +153,63 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 		}
 	    long currentThreadID = Thread.currentThread().getId();
 	    System.out.println("** Thread "+currentThreadID+ " finished IO("+i+")"); 
+	}
+
+	class Worker extends Thread {
+		
+		public Worker() {
+			
+		}
+ 		public void run() {
+ 			Frame frame;
+ 			try {
+ 				while (videoGrab.grab() != null) {
+ 	                frame = videoGrab.grabImage();			  
+				    if (frame != null) {
+				    	//frames.add(frame);
+				        filter.push(frame);
+				        Frame filterFrame;
+				        filterFrame = filter.pull();
+				        videoRecorder.setTimestamp(videoGrab.getTimestamp());
+				        videoRecorder.record(filterFrame, videoGrab.getPixelFormat());
+				    }
+				}
+			} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} catch (org.bytedeco.javacv.FrameRecorder.Exception e) {
+				e.printStackTrace();
+			}	
+		}
+	}
+	
+
+	class SharingWorker extends Thread {
+		
+		private ConcurrentLinkedQueue<Frame> sharedItems;
+		
+		public SharingWorker(ConcurrentLinkedQueue<Frame> sharedItems) {
+			this.sharedItems = sharedItems;
+		}
+		
+ 		public void run() {
+ 			Frame frame = null;
+ 			while ((frame = sharedItems.poll()) != null ) {
+ 				try {
+					filter.push(frame);
+					Frame filterFrame;
+			        filterFrame = filter.pull();
+			        videoRecorder.setTimestamp(videoGrab.getTimestamp());
+			        videoRecorder.record(filterFrame, videoGrab.getPixelFormat());
+				} catch (Exception e) {
+					e.printStackTrace();
+				} catch (org.bytedeco.javacv.FrameRecorder.Exception e) {
+					e.printStackTrace();
+				}     
+ 			}
+ 			System.out.println("Thread has finished");
+		}
 	}
 	
 }

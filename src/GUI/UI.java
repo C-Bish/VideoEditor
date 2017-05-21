@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import javax.swing.*;
 
+import Processing.ParallelProcessor;
 import Processing.VideoProcessor;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -22,14 +23,16 @@ public class UI extends JFrame implements Runnable {
     private JButton buttonPlayStop, buttonPlay, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
                     buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
-                    buttonPluginDifference, buttonOpenFile, buttonSave;
+                    buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel;
     private JLabel labelCurrentFilter, labelProcessing;
     private Thread  thread; 
     private int vidWidth, vidHeight;
-    private boolean playing;
+    private boolean playing, saving;
+    public boolean cancelled;
     private File file;
     private Container container;
     private VideoProcessor processor;
+    private ParallelProcessor ParaProcessor;
     private String filter;
     private UI ui;
     private BufferedImage pic;
@@ -65,6 +68,7 @@ public class UI extends JFrame implements Runnable {
         buttonPlayStop = new JButton("Stop");
         buttonOpenFile = new JButton("Open file");
         buttonSave = new JButton("Save");
+        buttonCancel = new JButton("Cancel");
         buttonNormal = new JButton("Normal"); 
         buttonPluginGray = new JButton("Gray Scale"); 
         buttonPluginSepia = new JButton("Sepia"); 
@@ -83,6 +87,7 @@ public class UI extends JFrame implements Runnable {
         buttonPlayStop.addActionListener(l_handler);
         buttonOpenFile.addActionListener(l_handler);
         buttonSave.addActionListener(l_handler);
+        buttonCancel.addActionListener(l_handler);
         buttonPluginGray.addActionListener(l_handler); 
         buttonNormal.addActionListener(l_handler); 
         buttonPluginSepia.addActionListener(l_handler); 
@@ -103,6 +108,7 @@ public class UI extends JFrame implements Runnable {
         panelButton.add(buttonPlayStop);
         panelButton.add(buttonOpenFile);
         panelButton.add(buttonSave);
+        panelButton.add(buttonCancel);
          
         filterOptions = new JPanel(); 
         filterOptions.setLayout(new GridLayout(15,1)); 
@@ -242,7 +248,6 @@ public class UI extends JFrame implements Runnable {
         			JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
         		}
             } else if (a_event.getSource() == buttonOpenFile) {
-            	System.out.println("opening file");
             	openFile();
             } else if (a_event.getSource() == buttonSave) {
             	if (file == null) {
@@ -252,13 +257,33 @@ public class UI extends JFrame implements Runnable {
             			JOptionPane.showMessageDialog(ui, "You have not selected a filter.");
             		} else {
             			updateLabel("Saving Video......");
+            			cancelled = false;
+            			saving = true;
             			processor = new VideoProcessor(file.getAbsolutePath(), ui);
             			// Need to add shared filter that changes when you push the filter buttons
             			processor.initializeFilter(filter);
             			processor.execute();
+            			//ParaProcessor = new ParallelProcessor(file.getAbsolutePath(), ui);
+            			//ParaProcessor.initializeFilter(filter);
+            			//ParaProcessor.execute();
             		}
             	}
-            }
+            } else if(a_event.getSource() == buttonCancel){ 
+                if (saving) {
+                	cancelled = true;
+                	processor.cancel(true);
+                	updateLabel("");
+                	System.out.println("Video processing has been cancelled.");
+                	JOptionPane.showMessageDialog(ui, "File saving has been cancelled.");
+                	File video = processor.getFile();
+                	if (processor.getFile().delete()) {
+                		System.out.println("File successfully deleted");
+                	}
+                	saving = false;
+                } else {
+                	JOptionPane.showMessageDialog(ui, "No file is being saved.");
+	            }
+            } 
             else if(a_event.getSource() == buttonNormal){ 
                 labelCurrentFilter.setText("Current filter: None");
                 filter = null;

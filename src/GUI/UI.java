@@ -29,6 +29,7 @@ public class UI extends JFrame implements Runnable {
     private int vidWidth, vidHeight;
     private boolean playing, saving;
     public boolean cancelled;
+    public JProgressBar progressBar;
     private File file;
     private Container container;
     private VideoProcessor processor;
@@ -61,6 +62,10 @@ public class UI extends JFrame implements Runnable {
         // Labels
         labelCurrentFilter = new JLabel("Current filter: None");
         labelProcessing = new JLabel("");
+        
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
          
         // Buttons 
         ButtonHandler l_handler = new ButtonHandler();
@@ -129,6 +134,7 @@ public class UI extends JFrame implements Runnable {
         panelLabels = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelLabels.add(labelCurrentFilter);
         panelLabels.add(labelProcessing);
+        panelLabels.add(progressBar);
 
         panelVideoButtons = new JPanel(new BorderLayout());
         panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
@@ -249,6 +255,7 @@ public class UI extends JFrame implements Runnable {
         		}
             } else if (a_event.getSource() == buttonOpenFile) {
             	openFile();
+            	progressBar.setValue(0);
             } else if (a_event.getSource() == buttonSave) {
             	if (file == null) {
             		JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
@@ -280,6 +287,7 @@ public class UI extends JFrame implements Runnable {
                 		System.out.println("File successfully deleted");
                 	}
                 	saving = false;
+                	progressBar.setValue(0);
                 } else {
                 	JOptionPane.showMessageDialog(ui, "No file is being saved.");
 	            }

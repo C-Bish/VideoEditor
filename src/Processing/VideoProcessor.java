@@ -114,6 +114,10 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             startTime = System.currentTimeMillis();
             System.out.println("There is " + videoGrab.getAudioChannels() + " audio channel");
             
+            int count = 0;
+            int progress = 0;
+            int frames = videoGrab.getLengthInFrames();
+            System.out.println("There are " + frames + " frames in this video");
             while (videoGrab.grab() != null) {
                 frame = videoGrab.grabImage();
               
@@ -124,7 +128,13 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
                     videoRecorder.setTimestamp(videoGrab.getTimestamp());
                     videoRecorder.record(filterFrame, videoGrab.getPixelFormat());
                 }
+                count++;
+                if (count % (frames/100) == 0) {
+                	progress++;
+                	ui.progressBar.setValue(progress);
+                }  
             }
+            ui.progressBar.setValue(100);
             filter.stop();
             videoRecorder.stop();
             videoRecorder.release();

@@ -19,15 +19,15 @@ import javafx.scene.media.MediaView;
 
 public class UI extends JFrame implements Runnable {
     // GUI 
-    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels; 
+    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels, panelProgress; 
     private JButton buttonPlayStop, buttonPlay, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
                     buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
-                    buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel;
+                    buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel, buttonParallel;
     private JLabel labelCurrentFilter, labelProcessing;
     private Thread  thread; 
     private int vidWidth, vidHeight;
-    private boolean playing, saving;
+    private boolean playing, saving, parallel;
     public boolean cancelled;
     public JProgressBar progressBar;
     private File file;
@@ -51,7 +51,8 @@ public class UI extends JFrame implements Runnable {
          
         thread = new Thread(this);
         thread.start();
-        playing = false; 
+        playing = false;
+        parallel = false;
         setLayout(new BorderLayout());
  
     }
@@ -74,6 +75,7 @@ public class UI extends JFrame implements Runnable {
         buttonOpenFile = new JButton("Open file");
         buttonSave = new JButton("Save");
         buttonCancel = new JButton("Cancel");
+        buttonParallel = new JButton("Parallel/Sequential");
         buttonNormal = new JButton("Normal"); 
         buttonPluginGray = new JButton("Gray Scale"); 
         buttonPluginSepia = new JButton("Sepia"); 
@@ -93,6 +95,7 @@ public class UI extends JFrame implements Runnable {
         buttonOpenFile.addActionListener(l_handler);
         buttonSave.addActionListener(l_handler);
         buttonCancel.addActionListener(l_handler);
+        buttonParallel.addActionListener(l_handler);
         buttonPluginGray.addActionListener(l_handler); 
         buttonNormal.addActionListener(l_handler); 
         buttonPluginSepia.addActionListener(l_handler); 
@@ -114,6 +117,7 @@ public class UI extends JFrame implements Runnable {
         panelButton.add(buttonOpenFile);
         panelButton.add(buttonSave);
         panelButton.add(buttonCancel);
+        panelButton.add(buttonParallel);
          
         filterOptions = new JPanel(); 
         filterOptions.setLayout(new GridLayout(15,1)); 
@@ -133,13 +137,17 @@ public class UI extends JFrame implements Runnable {
         
         panelLabels = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelLabels.add(labelCurrentFilter);
-        panelLabels.add(labelProcessing);
-        panelLabels.add(progressBar);
-
+        
+        panelProgress = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelProgress.add(labelProcessing);
+        panelProgress.add(progressBar);
+        
         panelVideoButtons = new JPanel(new BorderLayout());
         panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
-        panelVideoButtons.add(panelLabels, BorderLayout.CENTER);
-        panelVideoButtons.setSize(200, 200);
+        panelVideoButtons.add(panelLabels, BorderLayout.WEST);
+        panelVideoButtons.add(panelProgress, BorderLayout.EAST);
+        panelVideoButtons.setSize(200,200);
+        panelButton.setBorder(BorderFactory.createLineBorder(Color.black));
         
         container = getContentPane(); 
         container.setLayout(new BorderLayout()); 
@@ -149,7 +157,11 @@ public class UI extends JFrame implements Runnable {
         
         vidHeight = 400;
         vidWidth = 720;
-        panelPlayer = new JFXPanel(); 
+        panelPlayer = new JFXPanel();
+        panelPlayer.setBorder(BorderFactory.createLineBorder(Color.black));
+        panelPlayer.setOpaque(true);
+        panelPlayer.setBackground(Color.black);
+        container.add(panelPlayer, BorderLayout.CENTER);      
         
         setSize(vidWidth+125,vidHeight+100); 
         setResizable(false); 
@@ -181,7 +193,7 @@ public class UI extends JFrame implements Runnable {
 	            public void run() {
 	            	Scene scene = new Scene(root, 500, 500, true);
 	            	panelPlayer.setSize(1000,1000);
-	            	panelPlayer.setScene(scene);   
+	            	panelPlayer.setScene(scene); 
 	            }
 	        });
  
@@ -291,7 +303,15 @@ public class UI extends JFrame implements Runnable {
                 } else {
                 	JOptionPane.showMessageDialog(ui, "No file is being saved.");
 	            }
-            } 
+            } else if(a_event.getSource() == buttonParallel) {
+            	if(parallel){ 
+                    parallel = false;      
+                    JOptionPane.showMessageDialog(ui, "Processing will now be done sequentially.");
+                } else {
+                	parallel = true;
+                	JOptionPane.showMessageDialog(ui, "Processing will now be done in parallel.");
+                }
+	        }
             else if(a_event.getSource() == buttonNormal){ 
                 labelCurrentFilter.setText("Current filter: None");
                 filter = null;

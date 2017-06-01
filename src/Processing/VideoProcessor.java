@@ -132,7 +132,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
                 if (count % (frames/100) == 0) {
                 	progress++;
                 	ui.progressBar.setValue(progress);
-                }  
+                }
             }
             ui.progressBar.setValue(100);
             filter.stop();

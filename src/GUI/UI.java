@@ -229,8 +229,9 @@ public class UI extends JFrame implements Runnable {
 				container.add(panelPlayer, BorderLayout.CENTER);
 				container.add(panelVideoButtons, BorderLayout.SOUTH);
 				container.add(panelPreview, BorderLayout.EAST);
-		        container.validate();
-		        container.repaint();
+				this.invalidate();
+		        this.validate();
+		        this.repaint();
 			}
 		}  
     }
@@ -255,13 +256,14 @@ public class UI extends JFrame implements Runnable {
     	resized = imageproc.scale(filteredPreview,pic.getWidth()/2,pic.getHeight()/2);
 		ImageIcon image = new ImageIcon(resized);
 		JLabel picLabel = new JLabel(image);
+		container.remove(panelPreview);
 		panelPreview = new JPanel(new BorderLayout());
 		panelPreview.add(picLabel, BorderLayout.NORTH);
 		panelPreview.add(labelProcessInfo, BorderLayout.SOUTH);
 		panelPreview.setSize(pic.getWidth()/2, pic.getHeight());
 		container.add(panelPreview, BorderLayout.EAST);
-		container.revalidate();
-        container.repaint();
+		panelPreview.revalidate();
+		panelPreview.repaint();
     }
      
     private class ButtonHandler implements ActionListener {
@@ -347,6 +349,7 @@ public class UI extends JFrame implements Runnable {
                 resized = imageproc.scale(pic,pic.getWidth()/2,pic.getHeight()/2);
 				ImageIcon image = new ImageIcon(resized);
         		JLabel picLabel = new JLabel(image);
+        		container.remove(panelPreview);
         		panelPreview = new JPanel(new BorderLayout());
         		panelPreview.add(picLabel, BorderLayout.NORTH);
         		panelPreview.add(labelProcessInfo, BorderLayout.SOUTH);

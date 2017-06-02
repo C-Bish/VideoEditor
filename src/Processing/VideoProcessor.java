@@ -100,6 +100,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 			long time = System.currentTimeMillis() - startTime;
 			System.out.println("Video filtering took " + (time/1000) + " seconds.");
 			ui.updateLabel("");
+			ui.labelProcessInfo.setText("");
 			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");	
 		}
 	}
@@ -108,12 +109,16 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 		Frame frame;
 		try {
 			System.out.println("Starting to process video: " + video.getName() + ".....");
-            path = Directory + "/video" + System.currentTimeMillis() + "." + ext;
+            path = Directory + "/" + ui.outputVideo + "." + ext;
             initVideoRecorder(path);    
             
             startTime = System.currentTimeMillis();
             System.out.println("There is " + videoGrab.getAudioChannels() + " audio channel");
             
+            int count = 0;
+            int progress = 0;
+            int frames = videoGrab.getLengthInFrames();
+            System.out.println("There are " + frames + " frames in this video");
             while (videoGrab.grab() != null) {
                 frame = videoGrab.grabImage();
               
@@ -124,8 +129,15 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
                     videoRecorder.setTimestamp(videoGrab.getTimestamp());
                     videoRecorder.record(filterFrame, videoGrab.getPixelFormat());
                 }
+                count++;
+                if (count % (frames/100) == 0) {
+                	progress++;
+                	ui.progressBar.setValue(progress);
+                }
             }
+            ui.progressBar.setValue(100);
             filter.stop();
+            filter.release();
             videoRecorder.stop();
             videoRecorder.release();
             videoGrab.stop();

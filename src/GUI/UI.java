@@ -4,8 +4,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.ArrayList;
+
 import javax.swing.*;
 
+import Processing.ImageProcessing;
 import Processing.ParallelProcessor;
 import Processing.VideoProcessor;
 import javafx.application.Platform;
@@ -19,23 +22,28 @@ import javafx.scene.media.MediaView;
 
 public class UI extends JFrame implements Runnable {
     // GUI 
-    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels; 
+    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels, panelProgress, panelPreview; 
     private JButton buttonPlayStop, buttonPlay, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
                     buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
-                    buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel;
+                    buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel, buttonParallel;
     private JLabel labelCurrentFilter, labelProcessing;
-    private Thread  thread; 
+    public JLabel labelProcessInfo;
+    private Thread  thread;
     private int vidWidth, vidHeight;
-    private boolean playing, saving;
+    private boolean playing, saving, parallel;
     public boolean cancelled;
+    public ArrayList<JProgressBar> progressBars;
+    public JProgressBar progressBar;
     private File file;
     private Container container;
     private VideoProcessor processor;
     private ParallelProcessor ParaProcessor;
-    private String filter;
+    private ImageProcessing imageproc;
+    private String filter, filterName;
     private UI ui;
-    private BufferedImage pic;
+    private BufferedImage pic, filteredPreview, resized;
+    public String outputVideo;
     
     //---@Rain---
     private Media media;
@@ -50,7 +58,8 @@ public class UI extends JFrame implements Runnable {
          
         thread = new Thread(this);
         thread.start();
-        playing = false; 
+        playing = false;
+        parallel = false;
         setLayout(new BorderLayout());
  
     }
@@ -61,6 +70,11 @@ public class UI extends JFrame implements Runnable {
         // Labels
         labelCurrentFilter = new JLabel("Current filter: None");
         labelProcessing = new JLabel("");
+        labelProcessInfo = new JLabel("");
+        
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
          
         // Buttons 
         ButtonHandler l_handler = new ButtonHandler();
@@ -69,6 +83,7 @@ public class UI extends JFrame implements Runnable {
         buttonOpenFile = new JButton("Open file");
         buttonSave = new JButton("Save");
         buttonCancel = new JButton("Cancel");
+        buttonParallel = new JButton("Parallel/Sequential");
         buttonNormal = new JButton("Normal"); 
         buttonPluginGray = new JButton("Gray Scale"); 
         buttonPluginSepia = new JButton("Sepia"); 
@@ -88,6 +103,7 @@ public class UI extends JFrame implements Runnable {
         buttonOpenFile.addActionListener(l_handler);
         buttonSave.addActionListener(l_handler);
         buttonCancel.addActionListener(l_handler);
+        buttonParallel.addActionListener(l_handler);
         buttonPluginGray.addActionListener(l_handler); 
         buttonNormal.addActionListener(l_handler); 
         buttonPluginSepia.addActionListener(l_handler); 
@@ -109,6 +125,7 @@ public class UI extends JFrame implements Runnable {
         panelButton.add(buttonOpenFile);
         panelButton.add(buttonSave);
         panelButton.add(buttonCancel);
+        panelButton.add(buttonParallel);
          
         filterOptions = new JPanel(); 
         filterOptions.setLayout(new GridLayout(15,1)); 
@@ -128,22 +145,33 @@ public class UI extends JFrame implements Runnable {
         
         panelLabels = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelLabels.add(labelCurrentFilter);
-        panelLabels.add(labelProcessing);
-
+        
+        panelProgress = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelProgress.add(labelProcessing);
+        panelProgress.add(progressBar);
+        
+        panelPreview = new JPanel(new BorderLayout());
+        panelPreview.add(labelProcessInfo, BorderLayout.NORTH);
+        
         panelVideoButtons = new JPanel(new BorderLayout());
         panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
-        panelVideoButtons.add(panelLabels, BorderLayout.CENTER);
-        panelVideoButtons.setSize(200, 200);
+        panelVideoButtons.add(panelLabels, BorderLayout.WEST);
+        panelVideoButtons.add(panelProgress, BorderLayout.EAST);
+        panelVideoButtons.setSize(200,200);
+        panelButton.setBorder(BorderFactory.createLineBorder(Color.black));
         
-        container = getContentPane(); 
-        container.setLayout(new BorderLayout()); 
-        
+        container = getContentPane();
+        container.setLayout(new BorderLayout());
+        container.add(panelPreview);
         container.add(filterOptions, BorderLayout.WEST);
         container.add(panelVideoButtons, BorderLayout.SOUTH);
         
         vidHeight = 400;
         vidWidth = 720;
-        panelPlayer = new JFXPanel(); 
+        panelPlayer = new JFXPanel();
+        panelPlayer.setBorder(BorderFactory.createLineBorder(Color.black));
+        panelPlayer.setBackground(Color.black);
+        container.add(panelPlayer, BorderLayout.CENTER);      
         
         setSize(vidWidth+125,vidHeight+100); 
         setResizable(false); 
@@ -173,42 +201,42 @@ public class UI extends JFrame implements Runnable {
 	        Platform.runLater(new Runnable() {
 	            @Override 
 	            public void run() {
-	            	Scene scene = new Scene(root, 500, 500, true);
+	            	Scene scene = new Scene(root);
 	            	panelPlayer.setSize(1000,1000);
-	            	panelPlayer.setScene(scene);   
+	            	panelPlayer.setScene(scene); 
 	            }
 	        });
- 
-	        container.add(panelPlayer, BorderLayout.CENTER);
-	        container.validate();
-	        container.repaint();
 	        
-		/*} else {
-			// If the user chooses a file
-			file = fileChooser.getSelectedFile();
-			processor = new VideoProcessor(file.getName(), ui);
-			ImageProcessing imageproc = new ImageProcessing();
-			pic = imageproc.getFirstFrame(file);
+			imageproc = new ImageProcessing();
+			pic = imageproc.getFrame(file, 100);
 			if(pic != null) {
-				BufferedImage resized = imageproc.scale(pic,640,640);
-				image = new ImageIcon(resized);
+				vidHeight = pic.getHeight();
+				vidWidth = pic.getWidth();
+				resized = imageproc.scale(pic,vidWidth/2,vidHeight/2);
+				ImageIcon image = new ImageIcon(resized);
 				JLabel picLabel = new JLabel(image);
-				panelCenter.add(picLabel, BorderLayout.NORTH);
-				panelCenter.add(panelButton, BorderLayout.SOUTH);
-				panelCenter.add(panelLabels, BorderLayout.CENTER);
-				 
-				container.removeAll();;  
-				container.setLayout(new BorderLayout()); 
-				container.add(panelCenter, BorderLayout.CENTER);
+				
+				panelPreview.add(picLabel, BorderLayout.NORTH);
+				container.setLayout(new BorderLayout());
+				
+				panelPlayer.setSize(vidWidth,vidHeight);
+				panelPlayer.setBorder(null);
+				panelPreview.setSize(vidWidth/2,vidHeight);
+				vidWidth = pic.getWidth() + pic.getWidth()/2;
+				setSize(vidWidth+120,vidHeight+100);
+				//container.removeAll();;
 				container.add(filterOptions, BorderLayout.WEST);
-				vidHeight = resized.getHeight();
-				vidWidth = resized.getWidth();
-				setSize(vidWidth+125,vidHeight+100);
-			} else {*/	
+				container.add(panelPlayer, BorderLayout.CENTER);
+				container.add(panelVideoButtons, BorderLayout.SOUTH);
+				container.add(panelPreview, BorderLayout.EAST);
+				this.invalidate();
+		        this.validate();
+		        this.repaint();
+			}
 		}  
     }
      
-    public void run() { 
+    public void run() {
         while(true){             
             if(playing) 
             {
@@ -222,13 +250,28 @@ public class UI extends JFrame implements Runnable {
 		panelLabels.validate();
         panelLabels.repaint();
     }
+    
+    public void updatePreview() {
+    	filteredPreview = imageproc.filterImage(pic, filter);
+    	resized = imageproc.scale(filteredPreview,pic.getWidth()/2,pic.getHeight()/2);
+		ImageIcon image = new ImageIcon(resized);
+		JLabel picLabel = new JLabel(image);
+		container.remove(panelPreview);
+		panelPreview = new JPanel(new BorderLayout());
+		panelPreview.add(picLabel, BorderLayout.NORTH);
+		panelPreview.add(labelProcessInfo, BorderLayout.SOUTH);
+		panelPreview.setSize(pic.getWidth()/2, pic.getHeight());
+		container.add(panelPreview, BorderLayout.EAST);
+		panelPreview.revalidate();
+		panelPreview.repaint();
+    }
      
     private class ButtonHandler implements ActionListener {
-        public void actionPerformed(ActionEvent a_event) { 
+        public void actionPerformed(ActionEvent a_event) {
         	if (a_event.getSource() == buttonPlay) {
         		if (media != null) {
-	        		if(!playing){ 
-	                    playing = true;  
+	        		if(!playing){
+	                    playing = true;
 	                    player.play();
 	                }
         		} else {
@@ -236,7 +279,7 @@ public class UI extends JFrame implements Runnable {
         		}
         	} else if(a_event.getSource() == buttonPlayStop) {
                 if(playing){ 
-                    playing = false;      
+                    playing = false;    
                     player.stop();
                 } 
         		if (media != null) {
@@ -249,6 +292,7 @@ public class UI extends JFrame implements Runnable {
         		}
             } else if (a_event.getSource() == buttonOpenFile) {
             	openFile();
+            	progressBar.setValue(0);
             } else if (a_event.getSource() == buttonSave) {
             	if (file == null) {
             		JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
@@ -256,76 +300,117 @@ public class UI extends JFrame implements Runnable {
             		if (filter == null) {
             			JOptionPane.showMessageDialog(ui, "You have not selected a filter.");
             		} else {
+            			outputVideo = (String)JOptionPane.showInputDialog(ui,"Enter output file name:\n","File Name",JOptionPane.PLAIN_MESSAGE);
+            			System.out.println(outputVideo);
             			updateLabel("Saving Video......");
             			cancelled = false;
             			saving = true;
-            			processor = new VideoProcessor(file.getAbsolutePath(), ui);
-            			// Need to add shared filter that changes when you push the filter buttons
-            			processor.initializeFilter(filter);
-            			processor.execute();
-            			//ParaProcessor = new ParallelProcessor(file.getAbsolutePath(), ui);
-            			//ParaProcessor.initializeFilter(filter);
-            			//ParaProcessor.execute();
+            			if (!parallel) {
+            				labelProcessInfo.setText("Output: "+ outputVideo+"\n, Filter: "+filterName+", Sequential");
+	            			processor = new VideoProcessor(file.getAbsolutePath(), ui);
+	            			processor.initializeFilter(filter);
+	            			processor.execute();
+	            		// Need to add functionality to process in parallel.
+            			} else {
+            				updateLabel("");
+            				//ParaProcessor = new ParallelProcessor(file.getAbsolutePath(), ui);
+                			//ParaProcessor.initializeFilter(filter);
+                			//ParaProcessor.execute();
+            			}	
             		}
             	}
-            } else if(a_event.getSource() == buttonCancel){ 
+            } else if(a_event.getSource() == buttonCancel){
                 if (saving) {
                 	cancelled = true;
                 	processor.cancel(true);
                 	updateLabel("");
                 	System.out.println("Video processing has been cancelled.");
                 	JOptionPane.showMessageDialog(ui, "File saving has been cancelled.");
-                	File video = processor.getFile();
                 	if (processor.getFile().delete()) {
                 		System.out.println("File successfully deleted");
                 	}
                 	saving = false;
+                	progressBar.setValue(0);
                 } else {
                 	JOptionPane.showMessageDialog(ui, "No file is being saved.");
 	            }
-            } 
+            } else if(a_event.getSource() == buttonParallel) {
+            	if(parallel){
+                    parallel = false;
+                    JOptionPane.showMessageDialog(ui, "Processing will now be done sequentially.");
+                } else {
+                	parallel = true;
+                	JOptionPane.showMessageDialog(ui, "Processing will now be done in parallel.");
+                }
+	        }
             else if(a_event.getSource() == buttonNormal){ 
                 labelCurrentFilter.setText("Current filter: None");
                 filter = null;
+                resized = imageproc.scale(pic,pic.getWidth()/2,pic.getHeight()/2);
+				ImageIcon image = new ImageIcon(resized);
+        		JLabel picLabel = new JLabel(image);
+        		container.remove(panelPreview);
+        		panelPreview = new JPanel(new BorderLayout());
+        		panelPreview.add(picLabel, BorderLayout.NORTH);
+        		panelPreview.add(labelProcessInfo, BorderLayout.SOUTH);
+        		container.add(panelPreview, BorderLayout.EAST);
+        		container.validate();
+                container.repaint();
             } 
-            else if(a_event.getSource() == buttonPluginGray){  
+            else if(a_event.getSource() == buttonPluginGray){ 
+            	filterName = "Gray Scale";
                 labelCurrentFilter.setText("Current filter: Gray Scale");
                 filter = "colorchannelmixer=.3:.4:.3:0:.3:.4:.3:0:.3:.4:.3";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginSepia){ 
+            	filterName = "Sepia";
                 labelCurrentFilter.setText("Current filter: Sepia");
                 filter = "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginInvert){ 
+            	filterName = "Negative";
                 labelCurrentFilter.setText("Current filter: Negative");
                 filter = "lutrgb='r=negval:g=negval:b=negval'lutyuv='y=negval:u=negval:v=negval'";
+                updatePreview();
             } 
-            else if(a_event.getSource() == buttonPluginPixelize){  
+            else if(a_event.getSource() == buttonPluginPixelize){ 
+            	filterName = "Pixelize";
                 labelCurrentFilter.setText("Current filter: Pixelize");
                 filter = "boxblur=5:1";
+                updatePreview();
             } 
-            else if(a_event.getSource() == buttonThresholding){  
+            else if(a_event.getSource() == buttonThresholding){ 
+            	filterName = "Thresholding";
                 labelCurrentFilter.setText("Current filter: Thresholding"); 
             } 
-            else if(a_event.getSource() == buttonPluginHalftone){ 
+            else if(a_event.getSource() == buttonPluginHalftone){
+            	filterName = "Halftone";
                 labelCurrentFilter.setText("Current filter: Halftone"); 
             } 
             else if(a_event.getSource() == buttonPluginMinimum){ 
+            	filterName = "Minimum";
                 labelCurrentFilter.setText("Current filter: Minimum"); 
             } 
             else if(a_event.getSource() == buttonPluginMaximum){ 
+            	filterName = "Maximum";
                 labelCurrentFilter.setText("Current filter: Maximum"); 
             } 
             else if(a_event.getSource() == buttonPluginFlip){ 
+            	filterName = "Flip";
                 labelCurrentFilter.setText("Current filter: Flip");
             } 
-            else if(a_event.getSource() == buttonPluginTelevision){  
+            else if(a_event.getSource() == buttonPluginTelevision){ 
+            	filterName = "Television";
                 labelCurrentFilter.setText("Current filter: Television"); 
             } 
-            else if(a_event.getSource() == buttonPluginEdgeDetector){                  
+            else if(a_event.getSource() == buttonPluginEdgeDetector){
+            	filterName = "Edge Detector";
                 labelCurrentFilter.setText("Current filter: Edge Detector"); 
             }     
-            else if(a_event.getSource() == buttonPluginDifference){  
+            else if(a_event.getSource() == buttonPluginDifference){
+            	filterName = "Difference";
                 labelCurrentFilter.setText("Current filter: Difference"); 
             } 
         } 

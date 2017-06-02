@@ -100,6 +100,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 			long time = System.currentTimeMillis() - startTime;
 			System.out.println("Video filtering took " + (time/1000) + " seconds.");
 			ui.updateLabel("");
+			ui.labelProcessInfo.setText("");
 			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");	
 		}
 	}

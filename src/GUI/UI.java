@@ -39,6 +39,7 @@ public class UI extends JFrame implements Runnable {
     private String filter;
     private UI ui;
     private BufferedImage pic, filteredPreview;
+    public String outputVideo;
     
     //---@Rain---
     private Media media;
@@ -217,7 +218,7 @@ public class UI extends JFrame implements Runnable {
 				panelPreview.setSize(vidWidth,vidHeight);
 				vidWidth = pic.getWidth()*2;
 				setSize(vidWidth+120,vidHeight+100);
-				container.removeAll();;
+				//container.removeAll();;
 				container.add(filterOptions, BorderLayout.WEST);
 				container.add(panelPlayer, BorderLayout.CENTER);
 				container.add(panelVideoButtons, BorderLayout.SOUTH);
@@ -228,7 +229,7 @@ public class UI extends JFrame implements Runnable {
 		}  
     }
      
-    public void run() { 
+    public void run() {
         while(true){             
             if(playing) 
             {
@@ -251,7 +252,7 @@ public class UI extends JFrame implements Runnable {
 		panelPreview.add(picLabel, BorderLayout.CENTER);
 		container.removeAll();;
 		container.add(filterOptions, BorderLayout.WEST);
-		container.add(panelPlayer, BorderLayout.CENTER);
+		//container.add(panelPlayer, BorderLayout.CENTER);
 		container.add(panelVideoButtons, BorderLayout.SOUTH);
 		container.add(panelPreview, BorderLayout.EAST);
 		container.validate();
@@ -292,6 +293,8 @@ public class UI extends JFrame implements Runnable {
             		if (filter == null) {
             			JOptionPane.showMessageDialog(ui, "You have not selected a filter.");
             		} else {
+            			outputVideo = (String)JOptionPane.showInputDialog(ui,"Enter output file name:\n","File Name",JOptionPane.PLAIN_MESSAGE);
+            			System.out.println(outputVideo);
             			updateLabel("Saving Video......");
             			cancelled = false;
             			saving = true;

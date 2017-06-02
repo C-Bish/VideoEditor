@@ -108,7 +108,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 		Frame frame;
 		try {
 			System.out.println("Starting to process video: " + video.getName() + ".....");
-            path = Directory + "/video" + System.currentTimeMillis() + "." + ext;
+            path = Directory + "/" + ui.outputVideo + "." + ext;
             initVideoRecorder(path);    
             
             startTime = System.currentTimeMillis();

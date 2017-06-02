@@ -34,7 +34,7 @@ public class UI extends JFrame implements Runnable {
     public boolean cancelled;
     public ArrayList<JProgressBar> progressBars;
     public ArrayList<JLabel> processingInfo;
-    private ArrayList<VideoProcessor> processors;
+    public ArrayList<VideoProcessor> processors;
     private File file;
     private Container container;
     private ParallelProcessor ParaProcessor;
@@ -147,7 +147,7 @@ public class UI extends JFrame implements Runnable {
         panelProgress.add(labelProcessing);
         
         panelPreview = new JPanel(new BorderLayout());
-        panelProcessing = new JPanel(new GridLayout());
+        panelProcessing = new JPanel(new GridLayout(10,1));
         panelPreview.add(panelProcessing, BorderLayout.NORTH);
         
         panelVideoButtons = new JPanel(new BorderLayout());
@@ -181,6 +181,8 @@ public class UI extends JFrame implements Runnable {
     		player.stop();
     	}
 		JFileChooser fileChooser = new JFileChooser();
+		File directory = new File(System.getProperty("user.dir"));
+		fileChooser.setCurrentDirectory(directory);
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		int result = fileChooser.showOpenDialog( this );
 		  
@@ -248,6 +250,25 @@ public class UI extends JFrame implements Runnable {
         panelLabels.repaint();
     }
     
+    public void updateProcessing() {
+    	panelProcessing = new JPanel(new GridLayout(10,1));
+    	for (int i=0; i < processors.size(); i++) {
+    		panelProcessing.add(processingInfo.get(i), BorderLayout.NORTH);
+    		panelProcessing.add(progressBars.get(i), BorderLayout.NORTH);
+    	}
+    	ImageIcon image = new ImageIcon(resized);
+		JLabel picLabel = new JLabel(image);
+		container.remove(panelPreview);
+		panelPreview = new JPanel(new BorderLayout());
+		panelPreview.add(picLabel, BorderLayout.NORTH);
+		panelPreview.add(panelProcessing, BorderLayout.SOUTH);
+		panelPreview.setSize(pic.getWidth()/2, pic.getHeight());
+		container.add(panelPreview, BorderLayout.EAST);
+		panelPreview.revalidate();
+		panelPreview.repaint();
+    	
+    }
+    
     public void updatePreview() {
     	filteredPreview = imageproc.filterImage(pic, filter);
     	resized = imageproc.scale(filteredPreview,pic.getWidth()/2,pic.getHeight()/2);
@@ -308,9 +329,9 @@ public class UI extends JFrame implements Runnable {
             			if (!parallel) {
             				JLabel label = new JLabel("Output File: "+ outputVideo+"\n, Filter: "+filterName+", Processing Mode: Sequential");
             				processingInfo.add(label);
-            				panelProcessing.setLayout(new GridLayout((id+1)*2,1));
-            				panelProcessing.add(processingInfo.get(id));
-            				panelProcessing.add(progressBars.get(id));
+            				panelProcessing.add(label, BorderLayout.NORTH);
+            	    		panelProcessing.add(progressBar, BorderLayout.NORTH);
+            	    		panelProcessing.repaint();
 	            			VideoProcessor processor = new VideoProcessor(file.getAbsolutePath(), ui, id);
 	            			processors.add(processor);
 	            			processor.initializeFilter(filter);

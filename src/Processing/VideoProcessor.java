@@ -101,8 +101,20 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 		} else {
 			long time = System.currentTimeMillis() - startTime;
 			System.out.println("Video filtering took " + (time/1000) + " seconds.");
-			ui.updateLabel("");
-			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");	
+			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");
+			System.out.println(id);
+			if (ui.progressBars.size() < id) {
+				ui.progressBars.remove(0);
+				ui.processingInfo.remove(0);
+			} else {
+				ui.progressBars.remove(id);
+				ui.processingInfo.remove(id);
+			}
+			ui.processors.remove(this);
+			ui.updateProcessing();
+			if (ui.progressBars.size() == 0) {
+				ui.updateLabel("");
+			}
 		}
 	}
 

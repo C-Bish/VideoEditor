@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import javax.swing.*;
 
+import Processing.ImageProcessing;
 import Processing.ParallelProcessor;
 import Processing.VideoProcessor;
 import javafx.application.Platform;
@@ -19,7 +20,7 @@ import javafx.scene.media.MediaView;
 
 public class UI extends JFrame implements Runnable {
     // GUI 
-    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels, panelProgress; 
+    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels, panelProgress, panelPreview; 
     private JButton buttonPlayStop, buttonPlay, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
                     buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
@@ -34,9 +35,10 @@ public class UI extends JFrame implements Runnable {
     private Container container;
     private VideoProcessor processor;
     private ParallelProcessor ParaProcessor;
+    private ImageProcessing imageproc;
     private String filter;
     private UI ui;
-    private BufferedImage pic;
+    private BufferedImage pic, filteredPreview;
     
     //---@Rain---
     private Media media;
@@ -142,6 +144,8 @@ public class UI extends JFrame implements Runnable {
         panelProgress.add(labelProcessing);
         panelProgress.add(progressBar);
         
+        panelPreview = new JPanel(new BorderLayout());
+        
         panelVideoButtons = new JPanel(new BorderLayout());
         panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
         panelVideoButtons.add(panelLabels, BorderLayout.WEST);
@@ -151,7 +155,7 @@ public class UI extends JFrame implements Runnable {
         
         container = getContentPane(); 
         container.setLayout(new BorderLayout()); 
-        
+        container.add(panelPreview);
         container.add(filterOptions, BorderLayout.WEST);
         container.add(panelVideoButtons, BorderLayout.SOUTH);
         
@@ -159,7 +163,6 @@ public class UI extends JFrame implements Runnable {
         vidWidth = 720;
         panelPlayer = new JFXPanel();
         panelPlayer.setBorder(BorderFactory.createLineBorder(Color.black));
-        panelPlayer.setOpaque(true);
         panelPlayer.setBackground(Color.black);
         container.add(panelPlayer, BorderLayout.CENTER);      
         
@@ -187,42 +190,41 @@ public class UI extends JFrame implements Runnable {
 	        view = new MediaView(player);
 	        BorderPane root = new BorderPane();
 	        root.getChildren().add(view);
+	        System.out.println(media.getWidth());
 	        
 	        Platform.runLater(new Runnable() {
 	            @Override 
 	            public void run() {
-	            	Scene scene = new Scene(root, 500, 500, true);
+	            	Scene scene = new Scene(root);
 	            	panelPlayer.setSize(1000,1000);
 	            	panelPlayer.setScene(scene); 
 	            }
 	        });
- 
-	        container.add(panelPlayer, BorderLayout.CENTER);
-	        container.validate();
-	        container.repaint();
 	        
-		/*} else {
-			// If the user chooses a file
-			file = fileChooser.getSelectedFile();
-			processor = new VideoProcessor(file.getName(), ui);
-			ImageProcessing imageproc = new ImageProcessing();
-			pic = imageproc.getFirstFrame(file);
+			imageproc = new ImageProcessing();
+			pic = imageproc.getFrame(file, 100);
 			if(pic != null) {
-				BufferedImage resized = imageproc.scale(pic,640,640);
-				image = new ImageIcon(resized);
+				//BufferedImage resized = imageproc.scale(pic,400,720);
+				ImageIcon image = new ImageIcon(pic);
 				JLabel picLabel = new JLabel(image);
-				panelCenter.add(picLabel, BorderLayout.NORTH);
-				panelCenter.add(panelButton, BorderLayout.SOUTH);
-				panelCenter.add(panelLabels, BorderLayout.CENTER);
-				 
-				container.removeAll();;  
-				container.setLayout(new BorderLayout()); 
-				container.add(panelCenter, BorderLayout.CENTER);
+				vidHeight = pic.getHeight();
+				vidWidth = pic.getWidth();
+				panelPreview.add(picLabel, BorderLayout.CENTER);
+				container.setLayout(new BorderLayout());
+				
+				panelPlayer.setSize(vidWidth,vidHeight);
+				panelPlayer.setBorder(null);
+				panelPreview.setSize(vidWidth,vidHeight);
+				vidWidth = pic.getWidth()*2;
+				setSize(vidWidth+120,vidHeight+100);
+				container.removeAll();;
 				container.add(filterOptions, BorderLayout.WEST);
-				vidHeight = resized.getHeight();
-				vidWidth = resized.getWidth();
-				setSize(vidWidth+125,vidHeight+100);
-			} else {*/	
+				container.add(panelPlayer, BorderLayout.CENTER);
+				container.add(panelVideoButtons, BorderLayout.SOUTH);
+				container.add(panelPreview, BorderLayout.EAST);
+		        container.validate();
+		        container.repaint();
+			}
 		}  
     }
      
@@ -239,6 +241,21 @@ public class UI extends JFrame implements Runnable {
     	labelProcessing.setText(text);
 		panelLabels.validate();
         panelLabels.repaint();
+    }
+    
+    public void updatePreview() {
+    	filteredPreview = imageproc.filterImage(pic, filter);
+    	ImageIcon image = new ImageIcon(filteredPreview);
+		JLabel picLabel = new JLabel(image);
+		panelPreview = new JPanel(new BorderLayout());
+		panelPreview.add(picLabel, BorderLayout.CENTER);
+		container.removeAll();;
+		container.add(filterOptions, BorderLayout.WEST);
+		container.add(panelPlayer, BorderLayout.CENTER);
+		container.add(panelVideoButtons, BorderLayout.SOUTH);
+		container.add(panelPreview, BorderLayout.EAST);
+		container.validate();
+        container.repaint();
     }
      
     private class ButtonHandler implements ActionListener {
@@ -318,22 +335,37 @@ public class UI extends JFrame implements Runnable {
             else if(a_event.getSource() == buttonNormal){ 
                 labelCurrentFilter.setText("Current filter: None");
                 filter = null;
+                ImageIcon image = new ImageIcon(pic);
+        		JLabel picLabel = new JLabel(image);
+        		panelPreview = new JPanel(new BorderLayout());
+        		panelPreview.add(picLabel, BorderLayout.CENTER);
+        		container.removeAll();;
+        		container.add(filterOptions, BorderLayout.WEST);
+        		container.add(panelPlayer, BorderLayout.CENTER);
+        		container.add(panelVideoButtons, BorderLayout.SOUTH);
+        		container.add(panelPreview, BorderLayout.EAST);
+        		container.validate();
+                container.repaint();
             } 
             else if(a_event.getSource() == buttonPluginGray){  
                 labelCurrentFilter.setText("Current filter: Gray Scale");
                 filter = "colorchannelmixer=.3:.4:.3:0:.3:.4:.3:0:.3:.4:.3";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginSepia){ 
                 labelCurrentFilter.setText("Current filter: Sepia");
                 filter = "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginInvert){ 
                 labelCurrentFilter.setText("Current filter: Negative");
                 filter = "lutrgb='r=negval:g=negval:b=negval'lutyuv='y=negval:u=negval:v=negval'";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginPixelize){  
                 labelCurrentFilter.setText("Current filter: Pixelize");
                 filter = "boxblur=5:1";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonThresholding){  
                 labelCurrentFilter.setText("Current filter: Thresholding"); 

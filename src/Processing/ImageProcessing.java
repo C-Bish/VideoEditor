@@ -9,36 +9,45 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import org.bytedeco.javacv.FFmpegFrameFilter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameFilter.Exception;
+import org.bytedeco.javacv.Java2DFrameConverter;
 
 public class ImageProcessing {
 	FFmpegFrameGrabber grabFrame;
 	FFmpegFrameRecorder recordFrame;
+	Java2DFrameConverter converter;
+	
 	
 	public ImageProcessing() {
-		
+		converter = new Java2DFrameConverter();
 	}
 	
 	// Gets the first frame from a video and returns it as a buffered image
-	public BufferedImage getFirstFrame(File file) {
+	public BufferedImage getFrame(File file, int FrameNum) {
 		BufferedImage pic = null;
 		grabFrame = new FFmpegFrameGrabber(file.getAbsolutePath());
 		String filepath = System.getProperty("user.dir") + "/image.jpg";
-		try {
-			grabFrame.start();
-			recordFrame = new FFmpegFrameRecorder(filepath ,grabFrame.getImageWidth(), grabFrame.getImageHeight());
-			recordFrame.start();
-			Frame frame = grabFrame.grabImage();
-			recordFrame.record(frame,grabFrame.getPixelFormat());
-			grabFrame.stop();
-			grabFrame.release();
-			recordFrame.stop();
-			recordFrame.release();
-		} catch (org.bytedeco.javacv.FrameRecorder.Exception | org.bytedeco.javacv.FrameGrabber.Exception e1) {
-			e1.printStackTrace();
-		}
+		Frame frame = null;
+			try {
+				grabFrame.start();
+				recordFrame = new FFmpegFrameRecorder(filepath ,grabFrame.getImageWidth(), grabFrame.getImageHeight());
+				recordFrame.start();
+				for (int i = 0; i < FrameNum; i++) {
+					frame = grabFrame.grabImage();
+				}
+				recordFrame.record(frame, grabFrame.getPixelFormat());
+				grabFrame.stop();
+				grabFrame.release();
+				recordFrame.stop();
+				recordFrame.release();
+			} catch (org.bytedeco.javacv.FrameRecorder.Exception | org.bytedeco.javacv.FrameGrabber.Exception e1) {
+				e1.printStackTrace();
+			}
+		
 		File image = new File(filepath);
 		try {
 			pic = ImageIO.read(image);
@@ -97,4 +106,20 @@ public class ImageProcessing {
         return ret;
     }
 	
+	public BufferedImage filterImage(BufferedImage image, String filter) {
+		// Set the FFmpeg effect/filter that will be applied
+		Frame frame = converter.convert(image);
+		FFmpegFrameFilter f = new FFmpegFrameFilter(filter, image.getWidth(), image.getHeight());
+		Frame filterFrame = null;
+		try {
+			f.start();
+			f.push(frame);
+            filterFrame = f.pull();
+            f.stop();
+            f.release();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return converter.convert(filterFrame);
+	}	
 }

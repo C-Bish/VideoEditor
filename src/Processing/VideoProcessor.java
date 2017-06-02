@@ -136,6 +136,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             }
             ui.progressBar.setValue(100);
             filter.stop();
+            filter.release();
             videoRecorder.stop();
             videoRecorder.release();
             videoGrab.stop();

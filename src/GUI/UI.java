@@ -25,7 +25,7 @@ public class UI extends JFrame implements Runnable {
                     buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
                     buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel, buttonParallel;
     private JLabel labelCurrentFilter, labelProcessing;
-    private Thread  thread; 
+    private Thread  thread;
     private int vidWidth, vidHeight;
     private boolean playing, saving, parallel;
     public boolean cancelled;
@@ -242,11 +242,11 @@ public class UI extends JFrame implements Runnable {
     }
      
     private class ButtonHandler implements ActionListener {
-        public void actionPerformed(ActionEvent a_event) { 
+        public void actionPerformed(ActionEvent a_event) {
         	if (a_event.getSource() == buttonPlay) {
         		if (media != null) {
-	        		if(!playing){ 
-	                    playing = true;  
+	        		if(!playing){
+	                    playing = true;
 	                    player.play();
 	                }
         		} else {
@@ -254,7 +254,7 @@ public class UI extends JFrame implements Runnable {
         		}
         	} else if(a_event.getSource() == buttonPlayStop) {
                 if(playing){ 
-                    playing = false;      
+                    playing = false;    
                     player.stop();
                 } 
         		if (media != null) {
@@ -278,23 +278,26 @@ public class UI extends JFrame implements Runnable {
             			updateLabel("Saving Video......");
             			cancelled = false;
             			saving = true;
-            			processor = new VideoProcessor(file.getAbsolutePath(), ui);
-            			// Need to add shared filter that changes when you push the filter buttons
-            			processor.initializeFilter(filter);
-            			processor.execute();
-            			//ParaProcessor = new ParallelProcessor(file.getAbsolutePath(), ui);
-            			//ParaProcessor.initializeFilter(filter);
-            			//ParaProcessor.execute();
+            			if (!parallel) {
+	            			processor = new VideoProcessor(file.getAbsolutePath(), ui);
+	            			processor.initializeFilter(filter);
+	            			processor.execute();
+	            		// Need to add functionality to process in parallel.
+            			} else {
+            				updateLabel("");
+            				//ParaProcessor = new ParallelProcessor(file.getAbsolutePath(), ui);
+                			//ParaProcessor.initializeFilter(filter);
+                			//ParaProcessor.execute();
+            			}	
             		}
             	}
-            } else if(a_event.getSource() == buttonCancel){ 
+            } else if(a_event.getSource() == buttonCancel){
                 if (saving) {
                 	cancelled = true;
                 	processor.cancel(true);
                 	updateLabel("");
                 	System.out.println("Video processing has been cancelled.");
                 	JOptionPane.showMessageDialog(ui, "File saving has been cancelled.");
-                	File video = processor.getFile();
                 	if (processor.getFile().delete()) {
                 		System.out.println("File successfully deleted");
                 	}
@@ -304,8 +307,8 @@ public class UI extends JFrame implements Runnable {
                 	JOptionPane.showMessageDialog(ui, "No file is being saved.");
 	            }
             } else if(a_event.getSource() == buttonParallel) {
-            	if(parallel){ 
-                    parallel = false;      
+            	if(parallel){
+                    parallel = false;
                     JOptionPane.showMessageDialog(ui, "Processing will now be done sequentially.");
                 } else {
                 	parallel = true;

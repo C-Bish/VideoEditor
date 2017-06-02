@@ -22,22 +22,21 @@ import javafx.scene.media.MediaView;
 
 public class UI extends JFrame implements Runnable {
     // GUI 
-    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels, panelProgress, panelPreview; 
+    private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels, panelProgress, panelPreview, panelProcessing; 
     private JButton buttonPlayStop, buttonPlay, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
                     buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
                     buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel, buttonParallel;
     private JLabel labelCurrentFilter, labelProcessing;
-    public JLabel labelProcessInfo;
     private Thread  thread;
     private int vidWidth, vidHeight;
     private boolean playing, saving, parallel;
     public boolean cancelled;
     public ArrayList<JProgressBar> progressBars;
-    public JProgressBar progressBar;
+    public ArrayList<JLabel> processingInfo;
+    private ArrayList<VideoProcessor> processors;
     private File file;
     private Container container;
-    private VideoProcessor processor;
     private ParallelProcessor ParaProcessor;
     private ImageProcessing imageproc;
     private String filter, filterName;
@@ -60,6 +59,9 @@ public class UI extends JFrame implements Runnable {
         thread.start();
         playing = false;
         parallel = false;
+        processors = new ArrayList<VideoProcessor>();
+        progressBars = new ArrayList<JProgressBar>();
+        processingInfo = new ArrayList<JLabel>();
         setLayout(new BorderLayout());
  
     }
@@ -70,11 +72,6 @@ public class UI extends JFrame implements Runnable {
         // Labels
         labelCurrentFilter = new JLabel("Current filter: None");
         labelProcessing = new JLabel("");
-        labelProcessInfo = new JLabel("");
-        
-        progressBar = new JProgressBar(0, 100);
-        progressBar.setValue(0);
-        progressBar.setStringPainted(true);
          
         // Buttons 
         ButtonHandler l_handler = new ButtonHandler();
@@ -148,10 +145,10 @@ public class UI extends JFrame implements Runnable {
         
         panelProgress = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         panelProgress.add(labelProcessing);
-        panelProgress.add(progressBar);
         
         panelPreview = new JPanel(new BorderLayout());
-        panelPreview.add(labelProcessInfo, BorderLayout.NORTH);
+        panelProcessing = new JPanel(new GridLayout());
+        panelPreview.add(panelProcessing, BorderLayout.NORTH);
         
         panelVideoButtons = new JPanel(new BorderLayout());
         panelVideoButtons.add(panelButton, BorderLayout.SOUTH);
@@ -259,7 +256,7 @@ public class UI extends JFrame implements Runnable {
 		container.remove(panelPreview);
 		panelPreview = new JPanel(new BorderLayout());
 		panelPreview.add(picLabel, BorderLayout.NORTH);
-		panelPreview.add(labelProcessInfo, BorderLayout.SOUTH);
+		panelPreview.add(panelProcessing, BorderLayout.SOUTH);
 		panelPreview.setSize(pic.getWidth()/2, pic.getHeight());
 		container.add(panelPreview, BorderLayout.EAST);
 		panelPreview.revalidate();
@@ -292,7 +289,6 @@ public class UI extends JFrame implements Runnable {
         		}
             } else if (a_event.getSource() == buttonOpenFile) {
             	openFile();
-            	progressBar.setValue(0);
             } else if (a_event.getSource() == buttonSave) {
             	if (file == null) {
             		JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
@@ -301,13 +297,22 @@ public class UI extends JFrame implements Runnable {
             			JOptionPane.showMessageDialog(ui, "You have not selected a filter.");
             		} else {
             			outputVideo = (String)JOptionPane.showInputDialog(ui,"Enter output file name:\n","File Name",JOptionPane.PLAIN_MESSAGE);
-            			System.out.println(outputVideo);
             			updateLabel("Saving Video......");
             			cancelled = false;
             			saving = true;
+            			JProgressBar progressBar = new JProgressBar(0, 100);
+            			int id = progressBars.size();
+            			progressBars.add(progressBar);
+            	        progressBars.get(id).setValue(0);
+            	        progressBars.get(id).setStringPainted(true);
             			if (!parallel) {
-            				labelProcessInfo.setText("Output: "+ outputVideo+"\n, Filter: "+filterName+", Sequential");
-	            			processor = new VideoProcessor(file.getAbsolutePath(), ui);
+            				JLabel label = new JLabel("Output File: "+ outputVideo+"\n, Filter: "+filterName+", Processing Mode: Sequential");
+            				processingInfo.add(label);
+            				panelProcessing.setLayout(new GridLayout((id+1)*2,1));
+            				panelProcessing.add(processingInfo.get(id));
+            				panelProcessing.add(progressBars.get(id));
+	            			VideoProcessor processor = new VideoProcessor(file.getAbsolutePath(), ui, id);
+	            			processors.add(processor);
 	            			processor.initializeFilter(filter);
 	            			processor.execute();
 	            		// Need to add functionality to process in parallel.
@@ -322,15 +327,13 @@ public class UI extends JFrame implements Runnable {
             } else if(a_event.getSource() == buttonCancel){
                 if (saving) {
                 	cancelled = true;
-                	processor.cancel(true);
+                	for (int i=0; i < processors.size(); i++) {
+                		processors.get(i).cancel(true);
+                	}
                 	updateLabel("");
                 	System.out.println("Video processing has been cancelled.");
                 	JOptionPane.showMessageDialog(ui, "File saving has been cancelled.");
-                	if (processor.getFile().delete()) {
-                		System.out.println("File successfully deleted");
-                	}
                 	saving = false;
-                	progressBar.setValue(0);
                 } else {
                 	JOptionPane.showMessageDialog(ui, "No file is being saved.");
 	            }
@@ -352,7 +355,7 @@ public class UI extends JFrame implements Runnable {
         		container.remove(panelPreview);
         		panelPreview = new JPanel(new BorderLayout());
         		panelPreview.add(picLabel, BorderLayout.NORTH);
-        		panelPreview.add(labelProcessInfo, BorderLayout.SOUTH);
+        		panelPreview.add(panelProcessing, BorderLayout.SOUTH);
         		container.add(panelPreview, BorderLayout.EAST);
         		container.validate();
                 container.repaint();

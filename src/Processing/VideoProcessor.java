@@ -25,9 +25,11 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	private Long startTime;
 	private UI ui;
 	private String path;
+	private int id;
     
-	public VideoProcessor(String filename, UI ui) {
+	public VideoProcessor(String filename, UI ui, int id) {
 		this.ui = ui;
+		this.id= id;
 		video = new File(filename);
 		videoGrab = new FFmpegFrameGrabber(video.getAbsolutePath());
 		ext = getFileExtension(filename);
@@ -100,7 +102,6 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 			long time = System.currentTimeMillis() - startTime;
 			System.out.println("Video filtering took " + (time/1000) + " seconds.");
 			ui.updateLabel("");
-			ui.labelProcessInfo.setText("");
 			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");	
 		}
 	}
@@ -132,10 +133,10 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
                 count++;
                 if (count % (frames/100) == 0) {
                 	progress++;
-                	ui.progressBar.setValue(progress);
+                	ui.progressBars.get(id).setValue(progress);
                 }
             }
-            ui.progressBar.setValue(100);
+            ui.progressBars.get(id).setValue(100);
             filter.stop();
             filter.release();
             videoRecorder.stop();

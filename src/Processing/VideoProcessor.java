@@ -25,8 +25,9 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	private Long startTime;
 	private UI ui;
 	public String path;
-	private int id;
+	public int id;
 	public boolean done = false;
+	private long time;
     
 	public VideoProcessor(String filename, UI ui, int id) {
 		this.ui = ui;
@@ -91,6 +92,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	@Override
 	protected Void doInBackground() throws Exception {
 		start();
+		checkDone();
 		return null;
 	}
 	
@@ -101,10 +103,6 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 			File output = new File(path);
 			output.delete();
 		} else {
-			long time = System.currentTimeMillis() - startTime;
-			System.out.println("Video filtering took " + (time/1000) + " seconds.");
-			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");
-			System.out.println(id);
 			if (ui.progressBars.size() <= id) {
 				ui.progressBars.remove(0);
 				ui.processingInfo.remove(0);
@@ -163,6 +161,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             long currentThreadID = Thread.currentThread().getId();
     	    System.out.println("-- Thread "+currentThreadID+ " finished processing video: " + video.getName());
     	    done = true;
+    	    time = System.currentTimeMillis() - startTime;
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
         } catch (FrameRecorder.Exception e) {
@@ -170,6 +169,22 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
         } catch (FrameFilter.Exception e) {
             e.printStackTrace();
         }
+	}
+	
+	public void checkDone() {
+		System.out.println("Video filtering for video "+id+" took " + (time/1000) + " seconds.");
+		JOptionPane.showMessageDialog(ui, "Finished Saving Video: "+id+"\nTime taken: " + (time/1000) + " seconds.");
+		System.out.println(id);
+		boolean done = true;
+		boolean finished = false;
+		while(!finished) {
+			for (int i=0; i < ui.processors.size(); i++) {
+				if (!ui.processors.get(i).done) {
+					done = false;
+				}
+			}
+			if (done == true) { finished = true; }
+		}
 	}
 	
 	public static void performIO(int i) {

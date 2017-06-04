@@ -23,7 +23,7 @@ import javafx.scene.media.MediaView;
 public class UI extends JFrame implements Runnable {
     // GUI 
     private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels, panelProgress, panelPreview, panelProcessing; 
-    private JButton buttonPlayStop, buttonPlay, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
+    private JButton buttonPlayStop, buttonPlay, buttonPause, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
                     buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
                     buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel, buttonParallel;
@@ -77,6 +77,7 @@ public class UI extends JFrame implements Runnable {
         ButtonHandler l_handler = new ButtonHandler();
         buttonPlay = new JButton("Play");
         buttonPlayStop = new JButton("Stop");
+        buttonPause = new JButton("Pause");
         buttonOpenFile = new JButton("Open file");
         buttonSave = new JButton("Save");
         buttonCancel = new JButton("Cancel");
@@ -95,7 +96,8 @@ public class UI extends JFrame implements Runnable {
         buttonPluginEdgeDetector = new JButton("Edge Detector"); 
         buttonPluginDifference = new JButton("Difference"); 
         
-        buttonPlay.addActionListener(l_handler); 
+        buttonPlay.addActionListener(l_handler);
+        buttonPause.addActionListener(l_handler); 
         buttonPlayStop.addActionListener(l_handler);
         buttonOpenFile.addActionListener(l_handler);
         buttonSave.addActionListener(l_handler);
@@ -118,6 +120,7 @@ public class UI extends JFrame implements Runnable {
         // Panels 
         panelButton = new JPanel(); 
         panelButton.add(buttonPlay);
+        panelButton.add(buttonPause);
         panelButton.add(buttonPlayStop);
         panelButton.add(buttonOpenFile);
         panelButton.add(buttonSave);
@@ -295,16 +298,19 @@ public class UI extends JFrame implements Runnable {
         		} else {
         			JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
         		}
-        	} else if(a_event.getSource() == buttonPlayStop) {
-                if(playing){ 
-                    playing = false;    
-                    player.stop();
-                } 
+        	} else if (a_event.getSource() == buttonPause) {
         		if (media != null) {
 	        		if(playing){ 
 	                    playing = false;       
-	                    player.stop();
+	                    player.pause();
 	                }
+        		} else {
+        			JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
+        		}
+        	} else if(a_event.getSource() == buttonPlayStop) {
+        		if (media != null) {
+	                playing = false;       
+	                player.stop();
         		} else {
         			JOptionPane.showMessageDialog(ui, "You have not selected a file yet.");
         		}
@@ -431,7 +437,9 @@ public class UI extends JFrame implements Runnable {
             } 
             else if(a_event.getSource() == buttonPluginEdgeDetector){
             	filterName = "Edge Detector";
-                labelCurrentFilter.setText("Current filter: Edge Detector"); 
+                labelCurrentFilter.setText("Current filter: Edge Detector");
+                filter = "edgedetect=mode=colormix:high=0";
+                updatePreview();
             }     
             else if(a_event.getSource() == buttonPluginDifference){
             	filterName = "Difference";

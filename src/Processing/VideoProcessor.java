@@ -112,7 +112,8 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 				ui.progressBars.remove(id);
 				ui.processingInfo.remove(id);
 			}
-			//ui.updateProcessing();
+			ui.processors.remove(this);
+			ui.updateProcessing();
 			if (ui.progressBars.size() == 0) {
 				ui.updateLabel("");
 			}
@@ -127,7 +128,6 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             initVideoRecorder(path);    
             
             startTime = System.currentTimeMillis();
-            System.out.println("There is " + videoGrab.getAudioChannels() + " audio channel");
             
             int count = 0;
             int progress = 0;

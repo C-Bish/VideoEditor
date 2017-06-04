@@ -340,6 +340,7 @@ public class UI extends JFrame implements Runnable {
             	    		//panelProcessing.repaint();
 	            			VideoProcessor processor = new VideoProcessor(file.getAbsolutePath(), ui, id);
 	            			processors.add(processor);
+	            			updateProcessing();
 	            			processor.initializeFilter(filter);
 	            			processor.execute();
 	            		// Need to add functionality to process in parallel.

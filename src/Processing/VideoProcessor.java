@@ -24,8 +24,9 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	private String ext;
 	private Long startTime;
 	private UI ui;
-	private String path;
+	public String path;
 	private int id;
+	public boolean done = false;
     
 	public VideoProcessor(String filename, UI ui, int id) {
 		this.ui = ui;
@@ -95,23 +96,23 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	
 	@Override
 	protected void done() {
+		while(!done);
 		if (ui.cancelled) {
-			System.out.println(path);
 			File output = new File(path);
+			output.delete();
 		} else {
 			long time = System.currentTimeMillis() - startTime;
 			System.out.println("Video filtering took " + (time/1000) + " seconds.");
 			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");
 			System.out.println(id);
-			if (ui.progressBars.size() < id) {
+			if (ui.progressBars.size() <= id) {
 				ui.progressBars.remove(0);
 				ui.processingInfo.remove(0);
 			} else {
 				ui.progressBars.remove(id);
 				ui.processingInfo.remove(id);
 			}
-			ui.processors.remove(this);
-			ui.updateProcessing();
+			//ui.updateProcessing();
 			if (ui.progressBars.size() == 0) {
 				ui.updateLabel("");
 			}
@@ -133,6 +134,9 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             int frames = videoGrab.getLengthInFrames();
             System.out.println("There are " + frames + " frames in this video");
             while (videoGrab.grab() != null) {
+            	if (ui.cancelled) {
+            		break;
+            	}
                 frame = videoGrab.grabImage();
               
                 if (frame != null) {
@@ -148,7 +152,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
                 	ui.progressBars.get(id).setValue(progress);
                 }
             }
-            ui.progressBars.get(id).setValue(100);
+            if (!ui.cancelled) {ui.progressBars.get(id).setValue(100);}
             filter.stop();
             filter.release();
             videoRecorder.stop();
@@ -158,6 +162,7 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             System.out.println("Finished processing video: " + video.getName() + ".....");
             long currentThreadID = Thread.currentThread().getId();
     	    System.out.println("-- Thread "+currentThreadID+ " finished processing video: " + video.getName());
+    	    done = true;
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
         } catch (FrameRecorder.Exception e) {

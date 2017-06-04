@@ -25,7 +25,7 @@ public class UI extends JFrame implements Runnable {
     private JPanel panelButton, filterOptions, panelVideoButtons, panelLabels, panelProgress, panelPreview, panelProcessing; 
     private JButton buttonPlayStop, buttonPlay, buttonPause, buttonNormal, buttonPluginGray, buttonPluginSepia, buttonPluginInvert, 
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
-                    buttonPluginMaximum, buttonPluginFlip, buttonPluginTelevision, buttonPluginEdgeDetector,
+                    buttonPluginMaximum, buttonPluginVintage, buttonPluginTelevision, buttonPluginEdgeDetector,
                     buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel, buttonParallel;
     private JLabel labelCurrentFilter, labelProcessing;
     private Thread  thread;
@@ -91,7 +91,7 @@ public class UI extends JFrame implements Runnable {
         buttonPluginHalftone = new JButton("Halftone"); 
         buttonPluginMinimum = new JButton("Minimum"); 
         buttonPluginMaximum = new JButton("Maximum");         
-        buttonPluginFlip = new JButton("Flip"); 
+        buttonPluginVintage = new JButton("Vintage"); 
         buttonPluginTelevision = new JButton("Television"); 
         buttonPluginEdgeDetector = new JButton("Edge Detector"); 
         buttonPluginDifference = new JButton("Difference"); 
@@ -112,7 +112,7 @@ public class UI extends JFrame implements Runnable {
         buttonPluginHalftone.addActionListener(l_handler);         
         buttonPluginMinimum.addActionListener(l_handler); 
         buttonPluginMaximum.addActionListener(l_handler);         
-        buttonPluginFlip.addActionListener(l_handler); 
+        buttonPluginVintage.addActionListener(l_handler); 
         buttonPluginTelevision.addActionListener(l_handler); 
         buttonPluginEdgeDetector.addActionListener(l_handler); 
         buttonPluginDifference.addActionListener(l_handler);      
@@ -138,7 +138,7 @@ public class UI extends JFrame implements Runnable {
         filterOptions.add(buttonPluginHalftone);         
         filterOptions.add(buttonPluginMinimum); 
         filterOptions.add(buttonPluginMaximum);         
-        filterOptions.add(buttonPluginFlip); 
+        filterOptions.add(buttonPluginVintage); 
         filterOptions.add(buttonPluginTelevision); 
         filterOptions.add(buttonPluginEdgeDetector); 
         filterOptions.add(buttonPluginDifference);
@@ -333,11 +333,11 @@ public class UI extends JFrame implements Runnable {
             	        progressBars.get(id).setValue(0);
             	        progressBars.get(id).setStringPainted(true);
             			if (!parallel) {
-            				JLabel label = new JLabel("Output File: "+ outputVideo+"\n, Filter: "+filterName+", Processing Mode: Sequential");
+            				JLabel label = new JLabel("ID: "+id+", Output: "+ outputVideo+"\n, Filter: "+filterName+", Sequential");
             				processingInfo.add(label);
             				panelProcessing.add(label, BorderLayout.NORTH);
             	    		panelProcessing.add(progressBar, BorderLayout.NORTH);
-            	    		panelProcessing.repaint();
+            	    		//panelProcessing.repaint();
 	            			VideoProcessor processor = new VideoProcessor(file.getAbsolutePath(), ui, id);
 	            			processors.add(processor);
 	            			processor.initializeFilter(filter);
@@ -354,13 +354,14 @@ public class UI extends JFrame implements Runnable {
             } else if(a_event.getSource() == buttonCancel){
                 if (saving) {
                 	cancelled = true;
-                	for (int i=0; i < processors.size(); i++) {
-                		processors.get(i).cancel(true);
-                	}
                 	updateLabel("");
                 	System.out.println("Video processing has been cancelled.");
                 	JOptionPane.showMessageDialog(ui, "File saving has been cancelled.");
                 	saving = false;
+                	progressBars.removeAll(progressBars);
+                	processingInfo.removeAll(processingInfo);
+                	processors.removeAll(processors);
+                	updateProcessing();
                 } else {
                 	JOptionPane.showMessageDialog(ui, "No file is being saved.");
 	            }
@@ -408,7 +409,7 @@ public class UI extends JFrame implements Runnable {
             else if(a_event.getSource() == buttonPluginPixelize){ 
             	filterName = "Pixelize";
                 labelCurrentFilter.setText("Current filter: Pixelize");
-                filter = "boxblur=5:1";
+                filter = "colorlevels=rimin=0.039:gimin=0.039:bimin=0.039:rimax=0.96:gimax=0.96:bimax=0.96";
                 updatePreview();
             } 
             else if(a_event.getSource() == buttonThresholding){ 
@@ -427,9 +428,11 @@ public class UI extends JFrame implements Runnable {
             	filterName = "Maximum";
                 labelCurrentFilter.setText("Current filter: Maximum"); 
             } 
-            else if(a_event.getSource() == buttonPluginFlip){ 
-            	filterName = "Flip";
-                labelCurrentFilter.setText("Current filter: Flip");
+            else if(a_event.getSource() == buttonPluginVintage){ 
+            	filterName = "Vintage";
+                labelCurrentFilter.setText("Current filter: Vintage");
+                filter = "curves=vintage";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginTelevision){ 
             	filterName = "Television";

@@ -24,10 +24,14 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	private String ext;
 	private Long startTime;
 	private UI ui;
-	private String path;
+	public String path;
+	public int id;
+	public boolean done = false;
+	private long time;
     
-	public VideoProcessor(String filename, UI ui) {
+	public VideoProcessor(String filename, UI ui, int id) {
 		this.ui = ui;
+		this.id= id;
 		video = new File(filename);
 		videoGrab = new FFmpegFrameGrabber(video.getAbsolutePath());
 		ext = getFileExtension(filename);
@@ -88,20 +92,29 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	@Override
 	protected Void doInBackground() throws Exception {
 		start();
+		checkDone();
 		return null;
 	}
 	
 	@Override
 	protected void done() {
+		while(!done);
 		if (ui.cancelled) {
-			System.out.println(path);
 			File output = new File(path);
+			output.delete();
 		} else {
-			long time = System.currentTimeMillis() - startTime;
-			System.out.println("Video filtering took " + (time/1000) + " seconds.");
-			ui.updateLabel("");
-			ui.labelProcessInfo.setText("");
-			JOptionPane.showMessageDialog(ui, "Finished Saving Video\nTime taken: " + (time/1000) + " seconds.");	
+			if (ui.progressBars.size() <= id) {
+				ui.progressBars.remove(0);
+				ui.processingInfo.remove(0);
+			} else {
+				ui.progressBars.remove(id);
+				ui.processingInfo.remove(id);
+			}
+			ui.processors.remove(this);
+			ui.updateProcessing();
+			if (ui.progressBars.size() == 0) {
+				ui.updateLabel("");
+			}
 		}
 	}
 
@@ -113,13 +126,15 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             initVideoRecorder(path);    
             
             startTime = System.currentTimeMillis();
-            System.out.println("There is " + videoGrab.getAudioChannels() + " audio channel");
             
             int count = 0;
             int progress = 0;
             int frames = videoGrab.getLengthInFrames();
             System.out.println("There are " + frames + " frames in this video");
             while (videoGrab.grab() != null) {
+            	if (ui.cancelled) {
+            		break;
+            	}
                 frame = videoGrab.grabImage();
               
                 if (frame != null) {
@@ -132,10 +147,10 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
                 count++;
                 if (count % (frames/100) == 0) {
                 	progress++;
-                	ui.progressBar.setValue(progress);
+                	ui.progressBars.get(id).setValue(progress);
                 }
             }
-            ui.progressBar.setValue(100);
+            if (!ui.cancelled) {ui.progressBars.get(id).setValue(100);}
             filter.stop();
             filter.release();
             videoRecorder.stop();
@@ -145,6 +160,8 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             System.out.println("Finished processing video: " + video.getName() + ".....");
             long currentThreadID = Thread.currentThread().getId();
     	    System.out.println("-- Thread "+currentThreadID+ " finished processing video: " + video.getName());
+    	    done = true;
+    	    time = System.currentTimeMillis() - startTime;
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
         } catch (FrameRecorder.Exception e) {
@@ -152,6 +169,22 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
         } catch (FrameFilter.Exception e) {
             e.printStackTrace();
         }
+	}
+	
+	public void checkDone() {
+		System.out.println("Video filtering for video "+id+" took " + (time/1000) + " seconds.");
+		JOptionPane.showMessageDialog(ui, "Finished Saving Video: "+id+"\nTime taken: " + (time/1000) + " seconds.");
+		System.out.println(id);
+		boolean done = true;
+		boolean finished = false;
+		while(!finished) {
+			for (int i=0; i < ui.processors.size(); i++) {
+				if (!ui.processors.get(i).done) {
+					done = false;
+				}
+			}
+			if (done == true) { finished = true; }
+		}
 	}
 	
 	public static void performIO(int i) {

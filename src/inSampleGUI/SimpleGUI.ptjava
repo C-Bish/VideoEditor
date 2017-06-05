@@ -1,0 +1,167 @@
+package inSampleGUI;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.File;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import java.util.ArrayList;
+
+import controllers.*;
+import pt.runtime.TaskIDGroup;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import java.util.*;
+
+public class SimpleGUI extends JFrame implements ActionListener {
+	
+	private JButton btnGo = new JButton("Go!");
+	private JButton btnCheckResponsiveness = new JButton("Responsive?");
+	private ArrayList<String> a = new ArrayList<String>();
+	private Iterator<String> subVideoNames;
+	public long startTime;
+	
+	public SimpleGUI() {
+		super("Simple GUI example");
+		setSize(400, 300);
+		btnGo.addActionListener(this);
+		btnCheckResponsiveness.addActionListener(this);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		add(btnGo, BorderLayout.SOUTH);
+		add(btnCheckResponsiveness, BorderLayout.CENTER);	
+	}
+	
+	public void done() {
+		JOptionPane.showMessageDialog(SimpleGUI.this, "Done!");
+	}
+	
+	public void addFilter(FilterProcessor processor, String filter) {
+		
+		processor.initializeFilter(filter); 
+		processor.start();
+		
+	}
+	
+	public void actionPerformed(ActionEvent e) {
+		
+		String filter = "colorchannelmixer=.3:.4:.3:0:.3:.4:.3:0:.3:.4:.3";
+		if (e.getSource() == btnCheckResponsiveness) 
+		{
+			btnCheckResponsiveness.setBackground(new Color((int)(Math.random()*256), (int)(Math.random()*256), (int)(Math.random()*256)));
+		} else 
+		{
+			startTime = System.currentTimeMillis();	
+			TaskID splited = startSpliting("mv.mp4");
+			TaskID recordNames = recordSubVideoNames() dependsOn(splited);
+			TaskID filtered = startFiltering(filter) dependsOn(recordNames);
+			TaskID combined = combine()dependsOn(filtered) notify(done());
+		}
+	}
+	
+	public static void main(String[] agrs){
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				SimpleGUI frame = new SimpleGUI();
+				frame.setVisible(true);
+			}
+		});	
+	}
+	
+	TASK(4) public void addFilterToSubVideos(String filter)
+	{
+		
+		while(subVideoNames.hasNext())
+			addFilter(new FilterProcessor("SubVideos/" + subVideoNames.next()),filter);
+	}
+	
+	
+	TASK(4) public void splitVideo(String fileName) throws IOException
+	{
+		VideoSpliter vs = new VideoSpliter(fileName); 
+		//========= Splitting Video Start ============
+    	//--------calculation--------
+    	String duration = vs.getVideoDuration(fileName);  // The video name
+    	int durationInMs = vs.transferDuration(duration);
+    	int partitionedInMs = vs.partition(durationInMs, 4);
+    	String partitionedDur = vs.transferMsToDuration(partitionedInMs);
+    	//---------working-----------
+    	Iterator<String> it = vs.generateCommandLines(4, partitionedInMs, partitionedDur).iterator();
+    	vs.doRealSplittingWork(it);
+    	//========= Splitting Video End ==============
+	}
+	
+	TASK public void getVideoFiles() throws IOException
+	{
+		
+		System.out.println("start");		
+		File[] listOfFiles = new File("SubVideos").listFiles();
+		ArrayList<String> videoNames = new ArrayList<String>();
+		for(File listOfFile : listOfFiles){
+			if (listOfFile.isFile()) 
+			{
+				videoNames.add(listOfFile.getName());
+				System.out.println(listOfFile.getName());
+			}			
+		}
+		subVideoNames = videoNames.iterator();
+	}
+	
+	TASK public void combine()
+	{
+		new VideoCombiner().combine();
+		long endTime   = System.currentTimeMillis();
+		long totalTime = endTime - startTime;
+		System.out.println("Duration: " + totalTime + " ms");
+	}
+	
+	
+	TASK public void startSpliting(String file)
+	{
+		try{
+			TaskID id1 = splitVideo(file);
+			TaskIDGroup g = new TaskIDGroup(1);
+		    g.add(id1);
+		    System.out.println("** Going to wait for the tasks...");
+		    g.waitTillFinished();
+		    
+		    System.out.println("Done"); 
+		}
+		catch(Exception ee){		
+		}
+		
+	}
+	
+	TASK public void startFiltering(String filter)
+	{
+		try{
+			TaskID id2 = addFilterToSubVideos(filter);
+		    TaskIDGroup gg = new TaskIDGroup(1);
+		    gg.add(id2);
+		    gg.waitTillFinished();
+		    System.out.println("** Finished...");
+		}
+		catch(Exception ee){		
+		}
+		
+	}
+	
+	TASK public void recordSubVideoNames()
+	{
+		try{
+			TaskID id4 = getVideoFiles();
+			TaskIDGroup gg = new TaskIDGroup(1);
+		    gg.add(id4);
+		    gg.waitTillFinished();
+		    System.out.println("** Finished saving files ...");
+		}
+		catch(Exception ee){		
+		}
+	}
+}

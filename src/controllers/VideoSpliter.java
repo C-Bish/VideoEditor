@@ -24,12 +24,16 @@ import org.bytedeco.javacv.FrameFilter.Exception;
 public class VideoSpliter {
 	
 	private File file;
+	private int id;
 	
-	
-	public VideoSpliter(String originalVideoPath)
+	public VideoSpliter(String originalVideoPath, int id)
 	{
-		File directory = new File(System.getProperty("user.dir") + "/SubVideos/");
+		this.id = id;
+		File directory = new File(System.getProperty("user.dir") + "/SubVideos"+id+"/");
         if (!directory.exists()) {
+        	directory.mkdirs();
+        } else {
+        	directory.delete();
         	directory.mkdirs();
         }
         file = new File(originalVideoPath);
@@ -124,7 +128,7 @@ public class VideoSpliter {
 		for(int i = 0; i < numberOfPartitions; i ++)
 		{
 			String oriTime = transferMsToDuration(partitionedInMs * i);
-			String commandLine = "ffmpeg.exe -i "+file.getName()+" -ss " + oriTime + " -c copy -t "+ partitionedDur +" SubVideos\\sub_video_"+ i +".mp4";
+			String commandLine = "ffmpeg.exe -i "+file.getName()+" -ss " + oriTime + " -c copy -t "+ partitionedDur +" SubVideos"+id+"\\sub_video_"+ i +".mp4";
 			
 			list.add(commandLine);
 			System.out.println(commandLine);
@@ -148,5 +152,4 @@ public class VideoSpliter {
 			e.printStackTrace();
 		}
 	}
-
 }

@@ -18,14 +18,17 @@ public class VideoFilter {
 	private FFmpegFrameFilter filter;
 	private FFmpegFrameRecorder videoRecorder;
 	private FFmpegFrameGrabber videoGrab;
+	private String filtertype;
 	private File Directory;
 	private File video;
 	private String ext;
 	private Long startTime;
-	private UI ui;
 	private int id;
+	private UI ui;
     
-	public VideoFilter(String filename) {
+	public VideoFilter(String filename, UI ui, int id) {
+		this.id = id;
+		this.ui = ui;
 		video = new File(filename);
 		videoGrab = new FFmpegFrameGrabber(video.getAbsolutePath());
 		ext = getFileExtension(filename);
@@ -51,7 +54,7 @@ public class VideoFilter {
 	}
 	
 	private void getDirectory() {
-		Directory = new File(System.getProperty("user.dir") + "/EditedSubVideo/");
+		Directory = new File(System.getProperty("user.dir") + "/EditedSubVideo"+id+"/");
         if (!Directory.exists()) {
             Directory.mkdirs();
         }

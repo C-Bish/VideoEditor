@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import javax.swing.SwingWorker;
 
 import controllers.*;
+import pt.runtime.TaskID;
 import pt.runtime.TaskIDGroup;
 
 import java.nio.file.Files;
@@ -27,13 +28,21 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	private ArrayList<String> a = new ArrayList<String>();
 	private Iterator<String> subVideoNames;
 	public long startTime;
+	public long time;
 	private String filter;
 	private UI ui;
 	private int id;
 	private String file;
+	private String outputFile;
 	
 	public ParallelProcessor(String file, String filter, UI ui, int id) {
 		this.file = file;
+		String ext = "";
+		int i = file.lastIndexOf('.');
+		if (i > 0) {
+		    ext += file.substring(i+1);
+		}
+		outputFile = ui.outputVideo + "." + ext;
 		this.filter = filter;
 		this.ui = ui;
 		this.id = id;
@@ -41,6 +50,10 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	
 	@Override
 	public void done() {
+		time = System.currentTimeMillis() - startTime;
+		System.out.println("Video filtering for video "+id+" took " + (time/1000) + " seconds.");
+		JOptionPane.showMessageDialog(ui, "Finished Saving Video: "+id+"\nTime taken: " + (time/1000) + " seconds.");
+		System.out.println(id);
 		System.out.println("done!!!!!");
 	}
 	
@@ -66,7 +79,7 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	
 	TASK(Runtime.getRuntime().availableProcessors()) public void splitVideo(String fileName) throws IOException
 	{
-		VideoSpliter vs = new VideoSpliter(fileName); 
+		VideoSpliter vs = new VideoSpliter(fileName, id);
 		//========= Splitting Video Start ============
     	//--------calculation--------
     	String duration = vs.getVideoDuration(fileName);
@@ -83,7 +96,7 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	{
 		
 		System.out.println("start");		
-		File[] listOfFiles = new File("SubVideos").listFiles();
+		File[] listOfFiles = new File("SubVideos"+id).listFiles();
 		ArrayList<String> videoNames = new ArrayList<String>();
 		for(File listOfFile : listOfFiles){
 			if (listOfFile.isFile()) 
@@ -112,12 +125,12 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	TASK(Runtime.getRuntime().availableProcessors()) public void addFilterToSubVideos(String filter)
 	{
 		while(subVideoNames.hasNext())
-			addFilter(new VideoFilter("SubVideos/" + subVideoNames.next()),filter);
+			addFilter(new VideoFilter("SubVideos"+id+"/" + subVideoNames.next(), ui,id),filter);
 	}
 	
 	TASK public void combine()
 	{
-		new VideoCombiner().combine();
+		new VideoCombiner(outputFile, id).combine();
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
 		System.out.println("Duration: " + totalTime + " ms");
@@ -139,10 +152,11 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	@Override
 	protected Void doInBackground() throws Exception {
 		startTime = System.currentTimeMillis();	
-		TaskID splited = startSpliting("resized_sample_video.mp4");
+		TaskID splited = startSpliting(file);
 		TaskID recordNames = recordSubVideoNames() dependsOn(splited);
 		TaskID filtered = startFiltering(filter) dependsOn(recordNames);
 		TaskID combined = combine()dependsOn(filtered) notify(done());
+		combined.waitTillFinished();
 		return null;
 	}
 }

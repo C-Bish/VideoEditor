@@ -11,8 +11,9 @@ import org.bytedeco.javacv.FrameFilter.Exception;
 import GUI.UI;
 import org.bytedeco.javacpp.avcodec;
 import org.bytedeco.javacv.*;
+import Processing.VideoProcessor;
 
-public class FilterProcessor{
+public class VideoFilter {
 	
 	private FFmpegFrameFilter filter;
 	private FFmpegFrameRecorder videoRecorder;
@@ -22,8 +23,9 @@ public class FilterProcessor{
 	private String ext;
 	private Long startTime;
 	private UI ui;
+	private int id;
     
-	public FilterProcessor(String filename) {
+	public VideoFilter(String filename) {
 		video = new File(filename);
 		videoGrab = new FFmpegFrameGrabber(video.getAbsolutePath());
 		ext = getFileExtension(filename);
@@ -37,7 +39,6 @@ public class FilterProcessor{
 	
 	public void getVideoFiles()
 	{
-		
 		File[] listOfFiles = new File("SubVideos").listFiles();
 		ArrayList<String> videoNames = new ArrayList<String>();
 		for(File listOfFile : listOfFiles){
@@ -47,12 +48,10 @@ public class FilterProcessor{
 		        videoNames.add(listOfFile.getName());
 			} 
 		}
-		
-
 	}
 	
 	private void getDirectory() {
-		Directory = new File(System.getProperty("user.dir") + "/EditedVideo/");
+		Directory = new File(System.getProperty("user.dir") + "/EditedSubVideo/");
         if (!Directory.exists()) {
             Directory.mkdirs();
         }
@@ -100,11 +99,8 @@ public class FilterProcessor{
 		Frame frame;
 		try {
 			System.out.println("Starting to process video: " + video.getName() + ".....");
-            String path = Directory + "/video" + System.currentTimeMillis() + "." + ext;
-            initVideoRecorder(path);    
-            
-            
-            System.out.println("There is " + videoGrab.getAudioChannels() + " audio channel");
+            String path = Directory + "/edited_sub_video" + Thread.currentThread().getId() + "." + ext;
+            initVideoRecorder(path);
             
             while (videoGrab.grab() != null) {
                 frame = videoGrab.grabImage();
@@ -138,11 +134,11 @@ public class FilterProcessor{
 	
 	public void excute()
 	{
-		//long startTime = System.currentTimeMillis();
+		long startTime = System.currentTimeMillis();
 		start();
-		//long endTime   = System.currentTimeMillis();
-		//long totalTime = endTime - startTime;
-		//System.out.println("Duration: " + totalTime + " ms");
+		long endTime   = System.currentTimeMillis();
+		long totalTime = endTime - startTime;
+		System.out.println("Duration: " + totalTime + " ms");
 	}
 	
 }

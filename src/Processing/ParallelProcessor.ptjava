@@ -1,0 +1,148 @@
+package Processing;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.File;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import java.util.ArrayList;
+import javax.swing.SwingWorker;
+
+import controllers.*;
+import pt.runtime.TaskIDGroup;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import GUI.UI;
+
+import java.util.*;
+
+public class ParallelProcessor extends SwingWorker<Void, Integer> {
+	
+	private ArrayList<String> a = new ArrayList<String>();
+	private Iterator<String> subVideoNames;
+	public long startTime;
+	private String filter;
+	private UI ui;
+	private int id;
+	private String file;
+	
+	public ParallelProcessor(String file, String filter, UI ui, int id) {
+		this.file = file;
+		this.filter = filter;
+		this.ui = ui;
+		this.id = id;
+	}
+	
+	@Override
+	public void done() {
+		System.out.println("done!!!!!");
+	}
+	
+	public void addFilter(VideoFilter processor, String filter) {
+		processor.initializeFilter(filter); 
+		processor.start();
+	}
+	
+	TASK public void startSpliting(String file)
+	{
+		try{
+			TaskID id1 = splitVideo(file);
+			TaskIDGroup g = new TaskIDGroup(1);
+		    g.add(id1);
+		    System.out.println("** Going to wait for the tasks...");
+		    g.waitTillFinished();
+		    
+		    System.out.println("Done"); 
+		}
+		catch(Exception ee){	
+		}	
+	}
+	
+	TASK(Runtime.getRuntime().availableProcessors()) public void splitVideo(String fileName) throws IOException
+	{
+		VideoSpliter vs = new VideoSpliter(fileName); 
+		//========= Splitting Video Start ============
+    	//--------calculation--------
+    	String duration = vs.getVideoDuration(fileName);
+    	int durationInMs = vs.transferDuration(duration);
+    	int partitionedInMs = vs.partition(durationInMs, Runtime.getRuntime().availableProcessors());
+    	String partitionedDur = vs.transferMsToDuration(partitionedInMs);
+    	//---------working-----------
+    	Iterator<String> it = vs.generateCommandLines(Runtime.getRuntime().availableProcessors(), partitionedInMs, partitionedDur).iterator();
+    	vs.doRealSplittingWork(it);
+    	//========= Splitting Video End ==============
+	}
+	
+	TASK public void getVideoFiles() throws IOException
+	{
+		
+		System.out.println("start");		
+		File[] listOfFiles = new File("SubVideos").listFiles();
+		ArrayList<String> videoNames = new ArrayList<String>();
+		for(File listOfFile : listOfFiles){
+			if (listOfFile.isFile()) 
+			{
+				videoNames.add(listOfFile.getName());
+				System.out.println(listOfFile.getName());
+			}			
+		}
+		subVideoNames = videoNames.iterator();
+	}
+	
+	TASK public void startFiltering(String filter)
+	{
+		try{
+			TaskID id2 = addFilterToSubVideos(filter);
+		    TaskIDGroup gg = new TaskIDGroup(1);
+		    gg.add(id2);
+		    gg.waitTillFinished();
+		    System.out.println("** Finished...");
+		}
+		catch(Exception ee){		
+		}
+		
+	}
+	
+	TASK(Runtime.getRuntime().availableProcessors()) public void addFilterToSubVideos(String filter)
+	{
+		while(subVideoNames.hasNext())
+			addFilter(new VideoFilter("SubVideos/" + subVideoNames.next()),filter);
+	}
+	
+	TASK public void combine()
+	{
+		new VideoCombiner().combine();
+		long endTime   = System.currentTimeMillis();
+		long totalTime = endTime - startTime;
+		System.out.println("Duration: " + totalTime + " ms");
+	}
+	
+	TASK public void recordSubVideoNames()
+	{
+		try{
+			TaskID id4 = getVideoFiles();
+			TaskIDGroup gg = new TaskIDGroup(1);
+		    gg.add(id4);
+		    gg.waitTillFinished();
+		    System.out.println("** Finished saving files ...");
+		}
+		catch(Exception ee){		
+		}
+	}
+	
+	@Override
+	protected Void doInBackground() throws Exception {
+		startTime = System.currentTimeMillis();	
+		TaskID splited = startSpliting("resized_sample_video.mp4");
+		TaskID recordNames = recordSubVideoNames() dependsOn(splited);
+		TaskID filtered = startFiltering(filter) dependsOn(recordNames);
+		TaskID combined = combine()dependsOn(filtered) notify(done());
+		return null;
+	}
+}

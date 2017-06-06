@@ -20,7 +20,6 @@ public class VideoCombiner {
 			//checkTsFilesAreExisting();
 			runCombineProcessBuilder();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}	
 	}
@@ -35,11 +34,11 @@ public class VideoCombiner {
 			else
 				System.out.println("Edited Videoooo: " + Files.list(Paths.get("Edited Video")).count());	
 		}*/
-		File[] filteredVideos = new File("EditedVideo").listFiles();		
+		File[] filteredVideos = new File("EditedSubVideo").listFiles();		
 		for(File filteredVideo: filteredVideos) 
 		{	
 			try {
-				String command = "ffmpeg -i " + "EditedVideo\\" + filteredVideo.getName()
+				String command = "ffmpeg -i " + "EditedTsVideo\\" + filteredVideo.getName()
 				+ " -c copy -bsf:v h264_mp4toannexb -f mpegts "+ "EditedTsVideo\\" + filteredVideo.getName() + ".ts";
 				Runtime.getRuntime().exec(command);
 			} catch (IOException e) {
@@ -54,24 +53,26 @@ public class VideoCombiner {
 	{
 		while(true)
 		{
-			if(Files.list(Paths.get("EditedTsVideo")).count() == 4)
+			if(Files.list(Paths.get("Edited Video")).count() == Runtime.getRuntime().availableProcessors())
 				break;
 			else
-				System.out.println("EditedTsVideo: " + Files.list(Paths.get("EditedTsVideo")).count());	
+				System.out.println("Edited Video: " + Files.list(Paths.get("Edited Video")).count());	
 		}
 	}
 	
 	public void runCombineProcessBuilder()
 	{
 		
+		File directory = new File("Edited Video");
+		 if (!directory.exists()) {
+			 directory.mkdirs();
+	     }
+		
 		String command = "ffmpeg.exe" + "-i" + combinedVideoNames + "-c" + "copy" + "-bsf:a" +
 				"aac_adtstoasc" + ConfigConstants.COMBINED_VIDEO_PATH + "\\filteredVideo.mp4";
 		
-		
-		//ffmpeg -i "concat:EditedTsVideo\\video1496412752319.mp4.ts|EditedTsVideo\\video1496412752320.mp4.ts" -c copy -bsf:a aac_adtstoasc CombinedVideo\\output.mp4
-		
 		ProcessBuilder pb = new ProcessBuilder("ffmpeg.exe", "-i", combinedVideoNames, "-c" , "copy", "-bsf:a",
-				"aac_adtstoasc", "CombinedVideo\\filteredVideo.mp4");
+				"aac_adtstoasc", "Edited Video\\CombinedVideo.mp4");
 		try {
 			System.out.println(combinedVideoNames);
 			pb.redirectErrorStream(true);
@@ -81,11 +82,4 @@ public class VideoCombiner {
 			e.printStackTrace();
 		}
 	}
-	
-	
-	
-	
-	
-
-	
 }

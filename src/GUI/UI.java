@@ -35,9 +35,9 @@ public class UI extends JFrame implements Runnable {
     public ArrayList<JProgressBar> progressBars;
     public ArrayList<JLabel> processingInfo;
     public ArrayList<VideoProcessor> processors;
+    public ArrayList<ParallelProcessor> Paraprocessors;
     private File file;
     private Container container;
-    private ParallelProcessor ParaProcessor;
     private ImageProcessing imageproc;
     private String filter, filterName;
     private UI ui;
@@ -60,6 +60,7 @@ public class UI extends JFrame implements Runnable {
         playing = false;
         parallel = false;
         processors = new ArrayList<VideoProcessor>();
+        Paraprocessors = new ArrayList<ParallelProcessor>();
         progressBars = new ArrayList<JProgressBar>();
         processingInfo = new ArrayList<JLabel>();
         setLayout(new BorderLayout());
@@ -259,6 +260,10 @@ public class UI extends JFrame implements Runnable {
     		panelProcessing.add(processingInfo.get(i), BorderLayout.NORTH);
     		panelProcessing.add(progressBars.get(i), BorderLayout.NORTH);
     	}
+    	for (int i=0; i < Paraprocessors.size(); i++) {
+    		panelProcessing.add(processingInfo.get(i), BorderLayout.NORTH);
+    		panelProcessing.add(progressBars.get(i), BorderLayout.NORTH);
+    	}
     	ImageIcon image = new ImageIcon(resized);
 		JLabel picLabel = new JLabel(image);
 		container.remove(panelPreview);
@@ -337,7 +342,6 @@ public class UI extends JFrame implements Runnable {
             				processingInfo.add(label);
             				panelProcessing.add(label, BorderLayout.NORTH);
             	    		panelProcessing.add(progressBar, BorderLayout.NORTH);
-            	    		//panelProcessing.repaint();
 	            			VideoProcessor processor = new VideoProcessor(file.getAbsolutePath(), ui, id);
 	            			processors.add(processor);
 	            			updateProcessing();
@@ -345,10 +349,20 @@ public class UI extends JFrame implements Runnable {
 	            			processor.execute();
 	            		// Need to add functionality to process in parallel.
             			} else {
-            				updateLabel("");
-            				//ParaProcessor = new ParallelProcessor(file.getAbsolutePath(), ui);
-                			//ParaProcessor.initializeFilter(filter);
-                			//ParaProcessor.execute();
+            				JLabel label = new JLabel("ID: "+id+", Output: "+ outputVideo+"\n, Filter: "+filterName+", Parallel");
+            				processingInfo.add(label);
+            				panelProcessing.add(label, BorderLayout.NORTH);
+            	    		panelProcessing.add(progressBar, BorderLayout.NORTH);
+            	    		Thread t = new Thread(new Runnable() {
+	        	    		    @Override
+	        	    		    public void run() {
+	        	    		    	ParallelProcessor processor = new ParallelProcessor(file.getAbsolutePath(),filter, ui, id);
+	        	    				Paraprocessors.add(processor);
+	        	    				processor.execute(); 
+	    	            			updateProcessing();	      
+	        	    		    }
+            	    		});
+            	    		t.start();
             			}	
             		}
             	}

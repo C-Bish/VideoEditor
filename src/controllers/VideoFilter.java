@@ -25,10 +25,12 @@ public class VideoFilter {
 	private Long startTime;
 	private int id;
 	private UI ui;
+	private int count;
     
-	public VideoFilter(String filename, UI ui, int id) {
+	public VideoFilter(String filename, UI ui, int id, int count) {
 		this.id = id;
 		this.ui = ui;
+		this.count = count;
 		video = new File(filename);
 		videoGrab = new FFmpegFrameGrabber(video.getAbsolutePath());
 		ext = getFileExtension(filename);
@@ -102,7 +104,7 @@ public class VideoFilter {
 		Frame frame;
 		try {
 			System.out.println("Starting to process video: " + video.getName() + ".....");
-            String path = Directory + "/edited_sub_video" + Thread.currentThread().getId() + "." + ext;
+            String path = Directory + "/edited_sub_video" + System.currentTimeMillis() + "." + ext;
             initVideoRecorder(path);
             
             while (videoGrab.grab() != null) {

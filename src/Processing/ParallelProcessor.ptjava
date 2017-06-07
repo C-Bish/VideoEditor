@@ -12,7 +12,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import java.util.ArrayList;
 import javax.swing.SwingWorker;
-
 import controllers.*;
 import pt.runtime.TaskID;
 import pt.runtime.TaskIDGroup;
@@ -31,48 +30,65 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	public long time;
 	private String filter;
 	private UI ui;
-	private int id;
-	private String file;
+	public int id;
+	private File file;
+	private String ext, command;
 	private String outputFile;
+	private String [] cmd;
 	
-	public ParallelProcessor(String file, String filter, UI ui, int id) {
+	public ParallelProcessor(File file, String filter, UI ui, int id) {
 		this.file = file;
-		String ext = "";
-		int i = file.lastIndexOf('.');
+		String fileName = file.getName();
+		ext = "";
+		int i = fileName.lastIndexOf('.');
 		if (i > 0) {
-		    ext += file.substring(i+1);
+		    ext += fileName.substring(i+1);
 		}
 		outputFile = ui.outputVideo + "." + ext;
 		this.filter = filter;
 		this.ui = ui;
 		this.id = id;
+		cmd = new String[2];
 	}
 	
 	@Override
 	public void done() {
+		for (int i=0; i<2; i++) {
+			System.out.println(cmd[i]);
+			try {
+				Runtime.getRuntime().exec(cmd[i]);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		ui.Paraprocessors.remove(this);
 		ui.progressBars.get(id).setValue(100);
 		time = System.currentTimeMillis() - startTime;
+		File vid = new File("Edited Video/temp."+ext);
+		vid.delete();
 		System.out.println("Video filtering for video "+id+" took " + (time/1000) + " seconds.");
 		JOptionPane.showMessageDialog(ui, "Finished Saving Video: "+id+"\nTime taken: " + (time/1000) + " seconds.");
 		System.out.println(id);
 		System.out.println("done!!!!!");
 		ui.progressBars.remove(id);
 		ui.processingInfo.remove(id);
+		
+		ui.updateProcessing();
 	}
 	
 	public void addFilter(VideoFilter processor, String filter) {
-		processor.initializeFilter(filter); 
+		processor.initializeFilter(filter);
 		processor.start();
 	}
 	
 	TASK public void startSpliting(String file)
 	{
 		try{
+			System.out.println("** Going to wait for the tasks...");
 			TaskID id1 = splitVideo(file);
 			TaskIDGroup g = new TaskIDGroup(1);
 		    g.add(id1);
-		    System.out.println("** Going to wait for the tasks...");
+		    
 		    g.waitTillFinished();
 		    
 		    System.out.println("Done"); 
@@ -128,16 +144,36 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	
 	TASK(Runtime.getRuntime().availableProcessors()) public void addFilterToSubVideos(String filter)
 	{
+		int i=0;
 		while(subVideoNames.hasNext())
-			addFilter(new VideoFilter("SubVideos/" + subVideoNames.next(), ui,id),filter);
+			addFilter(new VideoFilter("SubVideos/" + subVideoNames.next(), ui,id, i),filter);
+			i++;
 	}
 	
 	TASK public void combine()
 	{
-		new VideoCombiner(outputFile, id).combine();
-		long endTime   = System.currentTimeMillis();
-		long totalTime = endTime - startTime;
-		System.out.println("Duration: " + totalTime + " ms");
+		VideoCombiner vc = new VideoCombiner(outputFile,id);
+		command = vc.combine();
+		cmd[0] = command;
+		
+	}
+	
+	TASK public void startCombine()
+	{
+		try{
+			System.out.println("Start Combining.......");
+			TaskID id10 = combine();
+			TaskIDGroup gggggggg = new TaskIDGroup(1);
+			gggggggg.add(id10);
+		    
+			gggggggg.waitTillFinished();
+		    
+		    System.out.println("Combine Finished.......");
+		}
+		catch(Exception ee){		
+		}
+
+		
 	}
 	
 	TASK public void recordSubVideoNames()
@@ -156,14 +192,24 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	@Override
 	protected Void doInBackground() throws Exception {
 		startTime = System.currentTimeMillis();	
-		TaskID split = startSpliting(file);
+		TaskID split = startSpliting(file.getName());
 		split.waitTillFinished();
+		
 		TaskID recordNames = recordSubVideoNames() dependsOn(split);
 		recordNames.waitTillFinished();
 		TaskID filtered = startFiltering(filter) dependsOn(recordNames);
 		filtered.waitTillFinished();
-		TaskID combined = combine()dependsOn(filtered) notify(done());
+		TaskID combined = startCombine()dependsOn(filtered);
 		combined.waitTillFinished();
+		
+		String audioMap = "ffmpeg -i \"Edited Video\"/temp."+ext+" -i "+file.getName()+" -c copy -map 0:0 -map 1:1 -shortest \"Edited Video\"/"+outputFile;
+		System.out.println(audioMap);
+		cmd[1] = audioMap;
+			
+		long endTime   = System.currentTimeMillis();
+		long totalTime = endTime - startTime;
+		System.out.println("Duration: " + totalTime + " ms");
+		
 		return null;
 	}
 }

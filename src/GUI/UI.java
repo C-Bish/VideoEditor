@@ -363,7 +363,7 @@ public class UI extends JFrame implements Runnable {
 	            	    		Thread t = new Thread(new Runnable() {
 		        	    		    @Override
 		        	    		    public void run() {
-		        	    		    	ParallelProcessor processor = new ParallelProcessor(file.getAbsolutePath(),filter, ui, id);
+		        	    		    	ParallelProcessor processor = new ParallelProcessor(file,filter, ui, id);
 		        	    				Paraprocessors.add(processor);
 		        	    				processor.execute(); 
 		    	            			updateProcessing();	      

@@ -193,6 +193,11 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 					ui.processors.get(i).id--;
 				}
 			}
+			for (int i=0; i < ui.Paraprocessors.size(); i++) {
+				if (ui.Paraprocessors.get(i).id > id) {
+					ui.Paraprocessors.get(i).id--;
+				}
+			}
 			ui.processors.remove(this);
 			ui.updateProcessing();
 		}

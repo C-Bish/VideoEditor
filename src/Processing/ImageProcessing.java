@@ -1,5 +1,9 @@
 package Processing;
 
+import static org.bytedeco.javacpp.opencv_core.cvReleaseImage;
+import static org.bytedeco.javacpp.opencv_imgcodecs.cvLoadImage;
+import static org.bytedeco.javacpp.opencv_imgcodecs.cvSaveImage;
+
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
@@ -9,12 +13,15 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacv.FFmpegFrameFilter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameFilter.Exception;
 import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter.ToIplImage;
 
 public class ImageProcessing {
 	FFmpegFrameGrabber grabFrame;
@@ -108,7 +115,9 @@ public class ImageProcessing {
 	
 	public BufferedImage filterImage(BufferedImage image, String filter) {
 		// Set the FFmpeg effect/filter that will be applied
-		Frame frame = converter.convert(image);
+		IplImage img = cvLoadImage("image.jpg");
+		ToIplImage convert = new ToIplImage();
+		Frame frame = convert.convert(img);
 		FFmpegFrameFilter f = new FFmpegFrameFilter(filter, image.getWidth(), image.getHeight());
 		Frame filterFrame = null;
 		try {
@@ -120,6 +129,16 @@ public class ImageProcessing {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return converter.convert(filterFrame);
+		IplImage filtered = convert.convert(filterFrame);
+		cvSaveImage("filtered.jpg", filtered);
+		cvReleaseImage(img);
+		File newimg = new File("filtered.jpg");
+		BufferedImage pic = null;
+		try {
+			pic = ImageIO.read(newimg);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+		return pic;
 	}	
 }

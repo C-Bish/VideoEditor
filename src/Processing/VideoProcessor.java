@@ -1,6 +1,7 @@
 package Processing;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
@@ -22,19 +23,22 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	private File Directory;
 	private File video;
 	private String ext;
+	private String output;
 	private Long startTime;
 	private UI ui;
 	public String path;
-	public int id;
+	public int id, originalid;
 	public boolean done = false;
 	private long time;
     
 	public VideoProcessor(String filename, UI ui, int id) {
 		this.ui = ui;
 		this.id= id;
+		this.originalid = id;
 		video = new File(filename);
 		videoGrab = new FFmpegFrameGrabber(video.getAbsolutePath());
 		ext = getFileExtension(filename);
+		output = ui.outputVideo;
 		try {
 			videoGrab.start();
 		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
@@ -103,26 +107,19 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 			File output = new File(path);
 			output.delete();
 		} else {
-			if (ui.progressBars.size() <= id) {
-				ui.progressBars.remove(0);
-				ui.processingInfo.remove(0);
-			} else {
-				ui.progressBars.remove(id);
-				ui.processingInfo.remove(id);
-			}
-			ui.processors.remove(this);
-			ui.updateProcessing();
 			if (ui.progressBars.size() == 0) {
 				ui.updateLabel("");
 			}
 		}
+		File vid = new File(Directory+ "/temp"+id+"."+ext);
+		vid.delete();
 	}
 
 	public void start() {
 		Frame frame;
 		try {
 			System.out.println("Starting to process video: " + video.getName() + ".....");
-            path = Directory + "/" + ui.outputVideo + "." + ext;
+            path = Directory + "/temp"+originalid+"." + ext;
             initVideoRecorder(path);    
             
             startTime = System.currentTimeMillis();
@@ -157,6 +154,14 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
             videoRecorder.release();
             videoGrab.stop();
             videoGrab.release();
+            String commandLine = "ffmpeg -i \"Edited Video\"/temp"+id+"."+ext+" -i "+video.getName()+" -c copy -map 0:0 -map 1:1 -shortest \"Edited Video\"/"+output+"."+ext;
+            System.out.println(commandLine);
+            try {
+    			Runtime.getRuntime().exec(commandLine);
+    			System.out.println("matching audio");
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}
             System.out.println("Finished processing video: " + video.getName() + ".....");
             long currentThreadID = Thread.currentThread().getId();
     	    System.out.println("-- Thread "+currentThreadID+ " finished processing video: " + video.getName());
@@ -173,9 +178,23 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	
 	public void checkDone() {
 		if (!ui.cancelled) {
-			System.out.println("Video filtering for video "+id+" took " + (time/1000) + " seconds.");
+			System.out.println("Video filtering for video "+originalid+" took " + (time/1000) + " seconds.");
 			JOptionPane.showMessageDialog(ui, "Finished Saving Video: "+id+"\nTime taken: " + (time/1000) + " seconds.");
 			System.out.println(id);
+			if (ui.progressBars.size() <= id) {
+				ui.progressBars.remove(0);
+				ui.processingInfo.remove(0);
+			} else {
+				ui.progressBars.remove(id);
+				ui.processingInfo.remove(id);
+			}
+			for (int i=0; i < ui.processors.size(); i++) {
+				if (ui.processors.get(i).id > id) {
+					ui.processors.get(i).id--;
+				}
+			}
+			ui.processors.remove(this);
+			ui.updateProcessing();
 		}
 		boolean done = true;
 		boolean finished = false;

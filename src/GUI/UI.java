@@ -88,7 +88,7 @@ public class UI extends JFrame implements Runnable {
         buttonPluginGray = new JButton("Gray Scale"); 
         buttonPluginSepia = new JButton("Sepia"); 
         buttonPluginInvert = new JButton("Invert Colors");     
-        buttonPluginPixelize = new JButton("Pixelize"); 
+        buttonPluginPixelize = new JButton("Blur"); 
         buttonThresholding = new JButton("Thresholding"); 
         buttonPluginHalftone = new JButton("Halftone"); 
         buttonPluginMinimum = new JButton("Darker"); 
@@ -226,10 +226,8 @@ public class UI extends JFrame implements Runnable {
 				JLabel picLabel = new JLabel(image);
 				container.setLayout(new BorderLayout());
 				panelPlayer.setSize(vidWidth,vidHeight);
-				System.out.println("width: " + vidWidth+ ", height: " + vidHeight);
 				panelPlayer.setBorder(null);
-				vidWidth = vidWidth + vidWidth/2;
-				setSize(vidWidth+120,vidHeight+100);
+				setSize(vidWidth+(vidWidth/2)+120,vidHeight+100);
 				container.remove(panelPreview);
 				container.add(panelPreview, BorderLayout.EAST);
 				container.add(filterOptions, BorderLayout.WEST);
@@ -431,12 +429,12 @@ public class UI extends JFrame implements Runnable {
             	filterName = "Negative";
                 labelCurrentFilter.setText("Current filter: Negative");
                 filter = "lutrgb='r=negval:g=negval:b=negval'lutyuv='y=negval:u=negval:v=negval'";
-                updatePreview();
+                //updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginPixelize){ 
-            	filterName = "Pixelize";
+            	filterName = "Blur";
                 labelCurrentFilter.setText("Current filter: Pixelize");
-                filter = "colorlevels=rimin=0.039:gimin=0.039:bimin=0.039:rimax=0.96:gimax=0.96:bimax=0.96";
+                filter = "unsharp=7:7:-2:7:7:-2";
                 updatePreview();
             } 
             else if(a_event.getSource() == buttonThresholding){ 
@@ -469,12 +467,12 @@ public class UI extends JFrame implements Runnable {
             	filterName = "Mirror";
                 labelCurrentFilter.setText("Current filter: Mirror");
                 filter = "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right] hstack";
-                updatePreview();
+                //updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginEdgeDetector){
             	filterName = "Edge Detector";
                 labelCurrentFilter.setText("Current filter: Edge Detector");
-                filter = "scale=w=200:h=100";
+                filter = "unsharp=7:7:-2:7:7:-2";
                 updatePreview();
             }     
             else if(a_event.getSource() == buttonPluginDifference){

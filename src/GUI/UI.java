@@ -63,6 +63,7 @@ public class UI extends JFrame implements Runnable {
         Paraprocessors = new ArrayList<ParallelProcessor>();
         progressBars = new ArrayList<JProgressBar>();
         processingInfo = new ArrayList<JLabel>();
+        imageproc = new ImageProcessing();
         setLayout(new BorderLayout());
  
     }
@@ -188,13 +189,23 @@ public class UI extends JFrame implements Runnable {
 		File directory = new File(System.getProperty("user.dir"));
 		fileChooser.setCurrentDirectory(directory);
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		int result = fileChooser.showOpenDialog( this );
+		int result = fileChooser.showOpenDialog(this);
 		  
 		if (result == JFileChooser.CANCEL_OPTION) {
 			// If the user clicks cancel
 		} else {
 			// If the user chooses a file
 			file = fileChooser.getSelectedFile();
+			
+			// Creating a resized video for the player
+			/*String commandLine = "ffmpeg.exe -i "+file.getName()+" -ss  -c copy -t  SubVideos\\sub_video_.mp4";
+			try {
+				Runtime.getRuntime().exec(commandLine);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}*/
+			//File resizedVideo = new File("resized");
+			
 			media = new Media(file.toURI().toString());
 	        player = new MediaPlayer(media);
 	        view = new MediaView(player);
@@ -205,12 +216,12 @@ public class UI extends JFrame implements Runnable {
 	            @Override 
 	            public void run() {
 	            	Scene scene = new Scene(root);
-	            	panelPlayer.setSize(1000,1000);
 	            	panelPlayer.setScene(scene); 
 	            }
 	        });
 	        
-			imageproc = new ImageProcessing();
+	        container.add(panelPlayer, BorderLayout.CENTER);
+	       
 			pic = imageproc.getFrame(file, 100);
 			if(pic != null) {
 				vidHeight = pic.getHeight();
@@ -218,24 +229,24 @@ public class UI extends JFrame implements Runnable {
 				resized = imageproc.scale(pic,vidWidth/2,vidHeight/2);
 				ImageIcon image = new ImageIcon(resized);
 				JLabel picLabel = new JLabel(image);
-				
-				panelPreview.add(picLabel, BorderLayout.NORTH);
 				container.setLayout(new BorderLayout());
-				this.remove(panelPlayer);
-				this.add(panelPlayer);
 				panelPlayer.setSize(vidWidth,vidHeight);
+				System.out.println("width: " + vidWidth+ ", height: " + vidHeight);
 				panelPlayer.setBorder(null);
-				panelPreview.setSize(vidWidth/2,vidHeight);
 				vidWidth = pic.getWidth() + pic.getWidth()/2;
 				setSize(vidWidth+120,vidHeight+100);
-				//container.removeAll();;
-				container.add(filterOptions, BorderLayout.WEST);
-				container.add(panelPlayer, BorderLayout.CENTER);
-				container.add(panelVideoButtons, BorderLayout.SOUTH);
+				container.remove(panelPreview);
 				container.add(panelPreview, BorderLayout.EAST);
-				this.invalidate();
-		        this.validate();
-		        this.repaint();
+				container.add(filterOptions, BorderLayout.WEST);
+				container.add(panelVideoButtons, BorderLayout.SOUTH);
+				container.remove(panelPreview);
+				panelPreview = new JPanel(new BorderLayout());
+				panelPreview.add(picLabel, BorderLayout.NORTH);
+				panelPreview.add(panelProcessing, BorderLayout.SOUTH);
+				panelPreview.setSize(pic.getWidth()/2, pic.getHeight());
+				container.add(panelPreview, BorderLayout.EAST);
+				panelPreview.revalidate();
+				panelPreview.repaint();
 			}
 		}  
     }

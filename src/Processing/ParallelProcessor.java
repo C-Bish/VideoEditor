@@ -491,33 +491,35 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {//####[26]###
         __pt__recordNames.addDependsOn(split);//####[161]####
 //####[161]####
         TaskID recordNames = recordSubVideoNames(__pt__recordNames);//####[161]####
-        TaskInfo __pt__filtered = new TaskInfo();//####[162]####
-//####[162]####
-        /*  -- ParaTask dependsOn clause for 'filtered' -- *///####[162]####
-        __pt__filtered.addDependsOn(recordNames);//####[162]####
-//####[162]####
-        TaskID filtered = startFiltering(filter, __pt__filtered);//####[162]####
-        TaskInfo __pt__combined = new TaskInfo();//####[163]####
+        recordNames.waitTillFinished();//####[162]####
+        TaskInfo __pt__filtered = new TaskInfo();//####[163]####
 //####[163]####
-        /*  -- ParaTask dependsOn clause for 'combined' -- *///####[163]####
-        __pt__combined.addDependsOn(filtered);//####[163]####
+        /*  -- ParaTask dependsOn clause for 'filtered' -- *///####[163]####
+        __pt__filtered.addDependsOn(recordNames);//####[163]####
 //####[163]####
-        boolean isEDT = GuiThread.isEventDispatchThread();//####[163]####
-//####[163]####
-//####[163]####
-        /*  -- ParaTask notify clause for 'combined' -- *///####[163]####
-        try {//####[163]####
-            Method __pt__combined_slot_0 = null;//####[163]####
-            __pt__combined_slot_0 = ParaTaskHelper.getDeclaredMethod(getClass(), "done", new Class[] {});//####[163]####
-            if (false) done(); //-- ParaTask uses this dummy statement to ensure the slot exists (otherwise Java compiler will complain)//####[163]####
-            __pt__combined.addSlotToNotify(new Slot(__pt__combined_slot_0, this, false));//####[163]####
-//####[163]####
-        } catch(Exception __pt__e) { //####[163]####
-            System.err.println("Problem registering method in clause:");//####[163]####
-            __pt__e.printStackTrace();//####[163]####
-        }//####[163]####
-        TaskID combined = combine(__pt__combined);//####[163]####
-        combined.waitTillFinished();//####[164]####
-        return null;//####[165]####
-    }//####[166]####
-}//####[166]####
+        TaskID filtered = startFiltering(filter, __pt__filtered);//####[163]####
+        filtered.waitTillFinished();//####[164]####
+        TaskInfo __pt__combined = new TaskInfo();//####[165]####
+//####[165]####
+        /*  -- ParaTask dependsOn clause for 'combined' -- *///####[165]####
+        __pt__combined.addDependsOn(filtered);//####[165]####
+//####[165]####
+        boolean isEDT = GuiThread.isEventDispatchThread();//####[165]####
+//####[165]####
+//####[165]####
+        /*  -- ParaTask notify clause for 'combined' -- *///####[165]####
+        try {//####[165]####
+            Method __pt__combined_slot_0 = null;//####[165]####
+            __pt__combined_slot_0 = ParaTaskHelper.getDeclaredMethod(getClass(), "done", new Class[] {});//####[165]####
+            if (false) done(); //-- ParaTask uses this dummy statement to ensure the slot exists (otherwise Java compiler will complain)//####[165]####
+            __pt__combined.addSlotToNotify(new Slot(__pt__combined_slot_0, this, false));//####[165]####
+//####[165]####
+        } catch(Exception __pt__e) { //####[165]####
+            System.err.println("Problem registering method in clause:");//####[165]####
+            __pt__e.printStackTrace();//####[165]####
+        }//####[165]####
+        TaskID combined = combine(__pt__combined);//####[165]####
+        combined.waitTillFinished();//####[166]####
+        return null;//####[167]####
+    }//####[168]####
+}//####[168]####

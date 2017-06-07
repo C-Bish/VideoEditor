@@ -159,7 +159,9 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 		TaskID split = startSpliting(file);
 		split.waitTillFinished();
 		TaskID recordNames = recordSubVideoNames() dependsOn(split);
+		recordNames.waitTillFinished();
 		TaskID filtered = startFiltering(filter) dependsOn(recordNames);
+		filtered.waitTillFinished();
 		TaskID combined = combine()dependsOn(filtered) notify(done());
 		combined.waitTillFinished();
 		return null;

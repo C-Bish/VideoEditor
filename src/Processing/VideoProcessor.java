@@ -172,9 +172,11 @@ public class VideoProcessor extends SwingWorker<Void, Integer> {
 	}
 	
 	public void checkDone() {
-		System.out.println("Video filtering for video "+id+" took " + (time/1000) + " seconds.");
-		JOptionPane.showMessageDialog(ui, "Finished Saving Video: "+id+"\nTime taken: " + (time/1000) + " seconds.");
-		System.out.println(id);
+		if (!ui.cancelled) {
+			System.out.println("Video filtering for video "+id+" took " + (time/1000) + " seconds.");
+			JOptionPane.showMessageDialog(ui, "Finished Saving Video: "+id+"\nTime taken: " + (time/1000) + " seconds.");
+			System.out.println(id);
+		}
 		boolean done = true;
 		boolean finished = false;
 		while(!finished) {

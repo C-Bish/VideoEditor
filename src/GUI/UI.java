@@ -221,7 +221,8 @@ public class UI extends JFrame implements Runnable {
 				
 				panelPreview.add(picLabel, BorderLayout.NORTH);
 				container.setLayout(new BorderLayout());
-				
+				this.remove(panelPlayer);
+				this.add(panelPlayer);
 				panelPlayer.setSize(vidWidth,vidHeight);
 				panelPlayer.setBorder(null);
 				panelPreview.setSize(vidWidth/2,vidHeight);
@@ -347,22 +348,25 @@ public class UI extends JFrame implements Runnable {
 	            			updateProcessing();
 	            			processor.initializeFilter(filter);
 	            			processor.execute();
-	            		// Need to add functionality to process in parallel.
             			} else {
-            				JLabel label = new JLabel("ID: "+id+", Output: "+ outputVideo+"\n, Filter: "+filterName+", Parallel");
-            				processingInfo.add(label);
-            				panelProcessing.add(label, BorderLayout.NORTH);
-            	    		panelProcessing.add(progressBar, BorderLayout.NORTH);
-            	    		Thread t = new Thread(new Runnable() {
-	        	    		    @Override
-	        	    		    public void run() {
-	        	    		    	ParallelProcessor processor = new ParallelProcessor(file.getAbsolutePath(),filter, ui, id);
-	        	    				Paraprocessors.add(processor);
-	        	    				processor.execute(); 
-	    	            			updateProcessing();	      
-	        	    		    }
-            	    		});
-            	    		t.start();
+            				if (Paraprocessors.size()==0) {
+	            				JLabel label = new JLabel("ID: "+id+", Output: "+ outputVideo+"\n, Filter: "+filterName+", Parallel");
+	            				processingInfo.add(label);
+	            				panelProcessing.add(label, BorderLayout.NORTH);
+	            	    		panelProcessing.add(progressBar, BorderLayout.NORTH);
+	            	    		Thread t = new Thread(new Runnable() {
+		        	    		    @Override
+		        	    		    public void run() {
+		        	    		    	ParallelProcessor processor = new ParallelProcessor(file.getAbsolutePath(),filter, ui, id);
+		        	    				Paraprocessors.add(processor);
+		        	    				processor.execute(); 
+		    	            			updateProcessing();	      
+		        	    		    }
+	            	    		});
+	            	    		t.start();
+            				} else {
+            					JOptionPane.showMessageDialog(ui, "There is already a parallel processor running.");
+            				}
             			}	
             		}
             	}

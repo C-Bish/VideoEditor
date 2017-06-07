@@ -50,11 +50,15 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	
 	@Override
 	public void done() {
+		ui.Paraprocessors.remove(this);
+		ui.progressBars.get(id).setValue(100);
 		time = System.currentTimeMillis() - startTime;
 		System.out.println("Video filtering for video "+id+" took " + (time/1000) + " seconds.");
 		JOptionPane.showMessageDialog(ui, "Finished Saving Video: "+id+"\nTime taken: " + (time/1000) + " seconds.");
 		System.out.println(id);
 		System.out.println("done!!!!!");
+		ui.progressBars.remove(id);
+		ui.processingInfo.remove(id);
 	}
 	
 	public void addFilter(VideoFilter processor, String filter) {
@@ -96,7 +100,7 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	{
 		
 		System.out.println("start");		
-		File[] listOfFiles = new File("SubVideos"+id).listFiles();
+		File[] listOfFiles = new File("SubVideos").listFiles();
 		ArrayList<String> videoNames = new ArrayList<String>();
 		for(File listOfFile : listOfFiles){
 			if (listOfFile.isFile()) 
@@ -125,7 +129,7 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	TASK(Runtime.getRuntime().availableProcessors()) public void addFilterToSubVideos(String filter)
 	{
 		while(subVideoNames.hasNext())
-			addFilter(new VideoFilter("SubVideos"+id+"/" + subVideoNames.next(), ui,id),filter);
+			addFilter(new VideoFilter("SubVideos/" + subVideoNames.next(), ui,id),filter);
 	}
 	
 	TASK public void combine()
@@ -152,8 +156,9 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {
 	@Override
 	protected Void doInBackground() throws Exception {
 		startTime = System.currentTimeMillis();	
-		TaskID splited = startSpliting(file);
-		TaskID recordNames = recordSubVideoNames() dependsOn(splited);
+		TaskID split = startSpliting(file);
+		split.waitTillFinished();
+		TaskID recordNames = recordSubVideoNames() dependsOn(split);
 		TaskID filtered = startFiltering(filter) dependsOn(recordNames);
 		TaskID combined = combine()dependsOn(filtered) notify(done());
 		combined.waitTillFinished();

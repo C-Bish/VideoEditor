@@ -54,10 +54,13 @@ public class VideoFilter {
 	}
 	
 	private void getDirectory() {
-		Directory = new File(System.getProperty("user.dir") + "/EditedSubVideo"+id+"/");
+		Directory = new File(System.getProperty("user.dir") + "/EditedSubVideo/");
         if (!Directory.exists()) {
             Directory.mkdirs();
         }
+        for(File file: Directory.listFiles()) 
+            if (!file.isDirectory())
+                file.delete();
 	}
 	
 	public void initializeFilter(String Filter) {
@@ -94,9 +97,6 @@ public class VideoFilter {
 		}
 		return extension;
 	}
-	
-	
-
 
 	public void start() {
 		Frame frame;
@@ -132,8 +132,6 @@ public class VideoFilter {
             e.printStackTrace();
         }
 	}
-	
-
 	
 	public void excute()
 	{

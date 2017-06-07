@@ -76,443 +76,448 @@ public class ParallelProcessor extends SwingWorker<Void, Integer> {//####[26]###
 //####[52]####
     @Override//####[52]####
     public void done() {//####[52]####
-        time = System.currentTimeMillis() - startTime;//####[53]####
-        System.out.println("Video filtering for video " + id + " took " + (time / 1000) + " seconds.");//####[54]####
-        JOptionPane.showMessageDialog(ui, "Finished Saving Video: " + id + "\nTime taken: " + (time / 1000) + " seconds.");//####[55]####
-        System.out.println(id);//####[56]####
-        System.out.println("done!!!!!");//####[57]####
-    }//####[58]####
-//####[60]####
-    public void addFilter(VideoFilter processor, String filter) {//####[60]####
-        processor.initializeFilter(filter);//####[61]####
-        processor.start();//####[62]####
-    }//####[63]####
-//####[65]####
-    private static volatile Method __pt__startSpliting_String_method = null;//####[65]####
-    private synchronized static void __pt__startSpliting_String_ensureMethodVarSet() {//####[65]####
-        if (__pt__startSpliting_String_method == null) {//####[65]####
-            try {//####[65]####
-                __pt__startSpliting_String_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__startSpliting", new Class[] {//####[65]####
-                    String.class//####[65]####
-                });//####[65]####
-            } catch (Exception e) {//####[65]####
-                e.printStackTrace();//####[65]####
-            }//####[65]####
-        }//####[65]####
-    }//####[65]####
-    public TaskID<Void> startSpliting(String file) {//####[66]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[66]####
-        return startSpliting(file, new TaskInfo());//####[66]####
-    }//####[66]####
-    public TaskID<Void> startSpliting(String file, TaskInfo taskinfo) {//####[66]####
-        // ensure Method variable is set//####[66]####
-        if (__pt__startSpliting_String_method == null) {//####[66]####
-            __pt__startSpliting_String_ensureMethodVarSet();//####[66]####
-        }//####[66]####
-        taskinfo.setParameters(file);//####[66]####
-        taskinfo.setMethod(__pt__startSpliting_String_method);//####[66]####
-        taskinfo.setInstance(this);//####[66]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[66]####
-    }//####[66]####
-    public TaskID<Void> startSpliting(TaskID<String> file) {//####[66]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[66]####
-        return startSpliting(file, new TaskInfo());//####[66]####
-    }//####[66]####
-    public TaskID<Void> startSpliting(TaskID<String> file, TaskInfo taskinfo) {//####[66]####
-        // ensure Method variable is set//####[66]####
-        if (__pt__startSpliting_String_method == null) {//####[66]####
-            __pt__startSpliting_String_ensureMethodVarSet();//####[66]####
-        }//####[66]####
-        taskinfo.setTaskIdArgIndexes(0);//####[66]####
-        taskinfo.addDependsOn(file);//####[66]####
-        taskinfo.setParameters(file);//####[66]####
-        taskinfo.setMethod(__pt__startSpliting_String_method);//####[66]####
-        taskinfo.setInstance(this);//####[66]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[66]####
-    }//####[66]####
-    public TaskID<Void> startSpliting(BlockingQueue<String> file) {//####[66]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[66]####
-        return startSpliting(file, new TaskInfo());//####[66]####
-    }//####[66]####
-    public TaskID<Void> startSpliting(BlockingQueue<String> file, TaskInfo taskinfo) {//####[66]####
-        // ensure Method variable is set//####[66]####
-        if (__pt__startSpliting_String_method == null) {//####[66]####
-            __pt__startSpliting_String_ensureMethodVarSet();//####[66]####
-        }//####[66]####
-        taskinfo.setQueueArgIndexes(0);//####[66]####
-        taskinfo.setIsPipeline(true);//####[66]####
-        taskinfo.setParameters(file);//####[66]####
-        taskinfo.setMethod(__pt__startSpliting_String_method);//####[66]####
-        taskinfo.setInstance(this);//####[66]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[66]####
-    }//####[66]####
-    public void __pt__startSpliting(String file) {//####[66]####
-        try {//####[67]####
-            TaskID id1 = splitVideo(file);//####[68]####
-            TaskIDGroup g = new TaskIDGroup(1);//####[69]####
-            g.add(id1);//####[70]####
-            System.out.println("** Going to wait for the tasks...");//####[71]####
-            g.waitTillFinished();//####[72]####
-            System.out.println("Done");//####[74]####
-        } catch (Exception ee) {//####[76]####
-        }//####[77]####
-    }//####[78]####
-//####[78]####
-//####[80]####
-    private static volatile Method __pt__splitVideo_String_method = null;//####[80]####
-    private synchronized static void __pt__splitVideo_String_ensureMethodVarSet() {//####[80]####
-        if (__pt__splitVideo_String_method == null) {//####[80]####
-            try {//####[80]####
-                __pt__splitVideo_String_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__splitVideo", new Class[] {//####[80]####
-                    String.class//####[80]####
-                });//####[80]####
-            } catch (Exception e) {//####[80]####
-                e.printStackTrace();//####[80]####
-            }//####[80]####
-        }//####[80]####
-    }//####[80]####
-    public TaskIDGroup<Void> splitVideo(String fileName) throws IOException {//####[81]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[81]####
-        return splitVideo(fileName, new TaskInfo());//####[81]####
-    }//####[81]####
-    public TaskIDGroup<Void> splitVideo(String fileName, TaskInfo taskinfo) throws IOException {//####[81]####
-        // ensure Method variable is set//####[81]####
-        if (__pt__splitVideo_String_method == null) {//####[81]####
-            __pt__splitVideo_String_ensureMethodVarSet();//####[81]####
+        ui.Paraprocessors.remove(this);//####[53]####
+        ui.progressBars.get(id).setValue(100);//####[54]####
+        time = System.currentTimeMillis() - startTime;//####[55]####
+        System.out.println("Video filtering for video " + id + " took " + (time / 1000) + " seconds.");//####[56]####
+        JOptionPane.showMessageDialog(ui, "Finished Saving Video: " + id + "\nTime taken: " + (time / 1000) + " seconds.");//####[57]####
+        System.out.println(id);//####[58]####
+        System.out.println("done!!!!!");//####[59]####
+        ui.progressBars.remove(id);//####[60]####
+        ui.processingInfo.remove(id);//####[61]####
+    }//####[62]####
+//####[64]####
+    public void addFilter(VideoFilter processor, String filter) {//####[64]####
+        processor.initializeFilter(filter);//####[65]####
+        processor.start();//####[66]####
+    }//####[67]####
+//####[69]####
+    private static volatile Method __pt__startSpliting_String_method = null;//####[69]####
+    private synchronized static void __pt__startSpliting_String_ensureMethodVarSet() {//####[69]####
+        if (__pt__startSpliting_String_method == null) {//####[69]####
+            try {//####[69]####
+                __pt__startSpliting_String_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__startSpliting", new Class[] {//####[69]####
+                    String.class//####[69]####
+                });//####[69]####
+            } catch (Exception e) {//####[69]####
+                e.printStackTrace();//####[69]####
+            }//####[69]####
+        }//####[69]####
+    }//####[69]####
+    public TaskID<Void> startSpliting(String file) {//####[70]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[70]####
+        return startSpliting(file, new TaskInfo());//####[70]####
+    }//####[70]####
+    public TaskID<Void> startSpliting(String file, TaskInfo taskinfo) {//####[70]####
+        // ensure Method variable is set//####[70]####
+        if (__pt__startSpliting_String_method == null) {//####[70]####
+            __pt__startSpliting_String_ensureMethodVarSet();//####[70]####
+        }//####[70]####
+        taskinfo.setParameters(file);//####[70]####
+        taskinfo.setMethod(__pt__startSpliting_String_method);//####[70]####
+        taskinfo.setInstance(this);//####[70]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[70]####
+    }//####[70]####
+    public TaskID<Void> startSpliting(TaskID<String> file) {//####[70]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[70]####
+        return startSpliting(file, new TaskInfo());//####[70]####
+    }//####[70]####
+    public TaskID<Void> startSpliting(TaskID<String> file, TaskInfo taskinfo) {//####[70]####
+        // ensure Method variable is set//####[70]####
+        if (__pt__startSpliting_String_method == null) {//####[70]####
+            __pt__startSpliting_String_ensureMethodVarSet();//####[70]####
+        }//####[70]####
+        taskinfo.setTaskIdArgIndexes(0);//####[70]####
+        taskinfo.addDependsOn(file);//####[70]####
+        taskinfo.setParameters(file);//####[70]####
+        taskinfo.setMethod(__pt__startSpliting_String_method);//####[70]####
+        taskinfo.setInstance(this);//####[70]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[70]####
+    }//####[70]####
+    public TaskID<Void> startSpliting(BlockingQueue<String> file) {//####[70]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[70]####
+        return startSpliting(file, new TaskInfo());//####[70]####
+    }//####[70]####
+    public TaskID<Void> startSpliting(BlockingQueue<String> file, TaskInfo taskinfo) {//####[70]####
+        // ensure Method variable is set//####[70]####
+        if (__pt__startSpliting_String_method == null) {//####[70]####
+            __pt__startSpliting_String_ensureMethodVarSet();//####[70]####
+        }//####[70]####
+        taskinfo.setQueueArgIndexes(0);//####[70]####
+        taskinfo.setIsPipeline(true);//####[70]####
+        taskinfo.setParameters(file);//####[70]####
+        taskinfo.setMethod(__pt__startSpliting_String_method);//####[70]####
+        taskinfo.setInstance(this);//####[70]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[70]####
+    }//####[70]####
+    public void __pt__startSpliting(String file) {//####[70]####
+        try {//####[71]####
+            TaskID id1 = splitVideo(file);//####[72]####
+            TaskIDGroup g = new TaskIDGroup(1);//####[73]####
+            g.add(id1);//####[74]####
+            System.out.println("** Going to wait for the tasks...");//####[75]####
+            g.waitTillFinished();//####[76]####
+            System.out.println("Done");//####[78]####
+        } catch (Exception ee) {//####[80]####
         }//####[81]####
-        taskinfo.setParameters(fileName);//####[81]####
-        taskinfo.setMethod(__pt__splitVideo_String_method);//####[81]####
-        taskinfo.setInstance(this);//####[81]####
-        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[81]####
-    }//####[81]####
-    public TaskIDGroup<Void> splitVideo(TaskID<String> fileName) throws IOException {//####[81]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[81]####
-        return splitVideo(fileName, new TaskInfo());//####[81]####
-    }//####[81]####
-    public TaskIDGroup<Void> splitVideo(TaskID<String> fileName, TaskInfo taskinfo) throws IOException {//####[81]####
-        // ensure Method variable is set//####[81]####
-        if (__pt__splitVideo_String_method == null) {//####[81]####
-            __pt__splitVideo_String_ensureMethodVarSet();//####[81]####
-        }//####[81]####
-        taskinfo.setTaskIdArgIndexes(0);//####[81]####
-        taskinfo.addDependsOn(fileName);//####[81]####
-        taskinfo.setParameters(fileName);//####[81]####
-        taskinfo.setMethod(__pt__splitVideo_String_method);//####[81]####
-        taskinfo.setInstance(this);//####[81]####
-        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[81]####
-    }//####[81]####
-    public TaskIDGroup<Void> splitVideo(BlockingQueue<String> fileName) throws IOException {//####[81]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[81]####
-        return splitVideo(fileName, new TaskInfo());//####[81]####
-    }//####[81]####
-    public TaskIDGroup<Void> splitVideo(BlockingQueue<String> fileName, TaskInfo taskinfo) throws IOException {//####[81]####
-        // ensure Method variable is set//####[81]####
-        if (__pt__splitVideo_String_method == null) {//####[81]####
-            __pt__splitVideo_String_ensureMethodVarSet();//####[81]####
-        }//####[81]####
-        taskinfo.setQueueArgIndexes(0);//####[81]####
-        taskinfo.setIsPipeline(true);//####[81]####
-        taskinfo.setParameters(fileName);//####[81]####
-        taskinfo.setMethod(__pt__splitVideo_String_method);//####[81]####
-        taskinfo.setInstance(this);//####[81]####
-        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[81]####
-    }//####[81]####
-    public void __pt__splitVideo(String fileName) throws IOException {//####[81]####
-        VideoSpliter vs = new VideoSpliter(fileName, id);//####[82]####
-        String duration = vs.getVideoDuration(fileName);//####[85]####
-        int durationInMs = vs.transferDuration(duration);//####[86]####
-        int partitionedInMs = vs.partition(durationInMs, Runtime.getRuntime().availableProcessors());//####[87]####
-        String partitionedDur = vs.transferMsToDuration(partitionedInMs);//####[88]####
-        Iterator<String> it = vs.generateCommandLines(Runtime.getRuntime().availableProcessors(), partitionedInMs, partitionedDur).iterator();//####[90]####
-        vs.doRealSplittingWork(it);//####[91]####
-    }//####[93]####
-//####[93]####
-//####[95]####
-    private static volatile Method __pt__getVideoFiles__method = null;//####[95]####
-    private synchronized static void __pt__getVideoFiles__ensureMethodVarSet() {//####[95]####
-        if (__pt__getVideoFiles__method == null) {//####[95]####
-            try {//####[95]####
-                __pt__getVideoFiles__method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__getVideoFiles", new Class[] {//####[95]####
-                    //####[95]####
-                });//####[95]####
-            } catch (Exception e) {//####[95]####
-                e.printStackTrace();//####[95]####
-            }//####[95]####
-        }//####[95]####
-    }//####[95]####
-    public TaskID<Void> getVideoFiles() throws IOException {//####[96]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[96]####
-        return getVideoFiles(new TaskInfo());//####[96]####
-    }//####[96]####
-    public TaskID<Void> getVideoFiles(TaskInfo taskinfo) throws IOException {//####[96]####
-        // ensure Method variable is set//####[96]####
-        if (__pt__getVideoFiles__method == null) {//####[96]####
-            __pt__getVideoFiles__ensureMethodVarSet();//####[96]####
-        }//####[96]####
-        taskinfo.setParameters();//####[96]####
-        taskinfo.setMethod(__pt__getVideoFiles__method);//####[96]####
-        taskinfo.setInstance(this);//####[96]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[96]####
-    }//####[96]####
-    public void __pt__getVideoFiles() throws IOException {//####[96]####
-        System.out.println("start");//####[98]####
-        File[] listOfFiles = new File("SubVideos" + id).listFiles();//####[99]####
-        ArrayList<String> videoNames = new ArrayList<String>();//####[100]####
-        for (File listOfFile : listOfFiles) //####[101]####
-        {//####[101]####
-            if (listOfFile.isFile()) //####[102]####
-            {//####[103]####
-                videoNames.add(listOfFile.getName());//####[104]####
-                System.out.println(listOfFile.getName());//####[105]####
-            }//####[106]####
-        }//####[107]####
-        subVideoNames = videoNames.iterator();//####[108]####
-    }//####[109]####
-//####[109]####
-//####[111]####
-    private static volatile Method __pt__startFiltering_String_method = null;//####[111]####
-    private synchronized static void __pt__startFiltering_String_ensureMethodVarSet() {//####[111]####
-        if (__pt__startFiltering_String_method == null) {//####[111]####
-            try {//####[111]####
-                __pt__startFiltering_String_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__startFiltering", new Class[] {//####[111]####
-                    String.class//####[111]####
-                });//####[111]####
-            } catch (Exception e) {//####[111]####
-                e.printStackTrace();//####[111]####
-            }//####[111]####
+    }//####[82]####
+//####[82]####
+//####[84]####
+    private static volatile Method __pt__splitVideo_String_method = null;//####[84]####
+    private synchronized static void __pt__splitVideo_String_ensureMethodVarSet() {//####[84]####
+        if (__pt__splitVideo_String_method == null) {//####[84]####
+            try {//####[84]####
+                __pt__splitVideo_String_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__splitVideo", new Class[] {//####[84]####
+                    String.class//####[84]####
+                });//####[84]####
+            } catch (Exception e) {//####[84]####
+                e.printStackTrace();//####[84]####
+            }//####[84]####
+        }//####[84]####
+    }//####[84]####
+    public TaskIDGroup<Void> splitVideo(String fileName) throws IOException {//####[85]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[85]####
+        return splitVideo(fileName, new TaskInfo());//####[85]####
+    }//####[85]####
+    public TaskIDGroup<Void> splitVideo(String fileName, TaskInfo taskinfo) throws IOException {//####[85]####
+        // ensure Method variable is set//####[85]####
+        if (__pt__splitVideo_String_method == null) {//####[85]####
+            __pt__splitVideo_String_ensureMethodVarSet();//####[85]####
+        }//####[85]####
+        taskinfo.setParameters(fileName);//####[85]####
+        taskinfo.setMethod(__pt__splitVideo_String_method);//####[85]####
+        taskinfo.setInstance(this);//####[85]####
+        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[85]####
+    }//####[85]####
+    public TaskIDGroup<Void> splitVideo(TaskID<String> fileName) throws IOException {//####[85]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[85]####
+        return splitVideo(fileName, new TaskInfo());//####[85]####
+    }//####[85]####
+    public TaskIDGroup<Void> splitVideo(TaskID<String> fileName, TaskInfo taskinfo) throws IOException {//####[85]####
+        // ensure Method variable is set//####[85]####
+        if (__pt__splitVideo_String_method == null) {//####[85]####
+            __pt__splitVideo_String_ensureMethodVarSet();//####[85]####
+        }//####[85]####
+        taskinfo.setTaskIdArgIndexes(0);//####[85]####
+        taskinfo.addDependsOn(fileName);//####[85]####
+        taskinfo.setParameters(fileName);//####[85]####
+        taskinfo.setMethod(__pt__splitVideo_String_method);//####[85]####
+        taskinfo.setInstance(this);//####[85]####
+        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[85]####
+    }//####[85]####
+    public TaskIDGroup<Void> splitVideo(BlockingQueue<String> fileName) throws IOException {//####[85]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[85]####
+        return splitVideo(fileName, new TaskInfo());//####[85]####
+    }//####[85]####
+    public TaskIDGroup<Void> splitVideo(BlockingQueue<String> fileName, TaskInfo taskinfo) throws IOException {//####[85]####
+        // ensure Method variable is set//####[85]####
+        if (__pt__splitVideo_String_method == null) {//####[85]####
+            __pt__splitVideo_String_ensureMethodVarSet();//####[85]####
+        }//####[85]####
+        taskinfo.setQueueArgIndexes(0);//####[85]####
+        taskinfo.setIsPipeline(true);//####[85]####
+        taskinfo.setParameters(fileName);//####[85]####
+        taskinfo.setMethod(__pt__splitVideo_String_method);//####[85]####
+        taskinfo.setInstance(this);//####[85]####
+        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[85]####
+    }//####[85]####
+    public void __pt__splitVideo(String fileName) throws IOException {//####[85]####
+        VideoSpliter vs = new VideoSpliter(fileName, id);//####[86]####
+        String duration = vs.getVideoDuration(fileName);//####[89]####
+        int durationInMs = vs.transferDuration(duration);//####[90]####
+        int partitionedInMs = vs.partition(durationInMs, Runtime.getRuntime().availableProcessors());//####[91]####
+        String partitionedDur = vs.transferMsToDuration(partitionedInMs);//####[92]####
+        Iterator<String> it = vs.generateCommandLines(Runtime.getRuntime().availableProcessors(), partitionedInMs, partitionedDur).iterator();//####[94]####
+        vs.doRealSplittingWork(it);//####[95]####
+    }//####[97]####
+//####[97]####
+//####[99]####
+    private static volatile Method __pt__getVideoFiles__method = null;//####[99]####
+    private synchronized static void __pt__getVideoFiles__ensureMethodVarSet() {//####[99]####
+        if (__pt__getVideoFiles__method == null) {//####[99]####
+            try {//####[99]####
+                __pt__getVideoFiles__method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__getVideoFiles", new Class[] {//####[99]####
+                    //####[99]####
+                });//####[99]####
+            } catch (Exception e) {//####[99]####
+                e.printStackTrace();//####[99]####
+            }//####[99]####
+        }//####[99]####
+    }//####[99]####
+    public TaskID<Void> getVideoFiles() throws IOException {//####[100]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[100]####
+        return getVideoFiles(new TaskInfo());//####[100]####
+    }//####[100]####
+    public TaskID<Void> getVideoFiles(TaskInfo taskinfo) throws IOException {//####[100]####
+        // ensure Method variable is set//####[100]####
+        if (__pt__getVideoFiles__method == null) {//####[100]####
+            __pt__getVideoFiles__ensureMethodVarSet();//####[100]####
+        }//####[100]####
+        taskinfo.setParameters();//####[100]####
+        taskinfo.setMethod(__pt__getVideoFiles__method);//####[100]####
+        taskinfo.setInstance(this);//####[100]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[100]####
+    }//####[100]####
+    public void __pt__getVideoFiles() throws IOException {//####[100]####
+        System.out.println("start");//####[102]####
+        File[] listOfFiles = new File("SubVideos").listFiles();//####[103]####
+        ArrayList<String> videoNames = new ArrayList<String>();//####[104]####
+        for (File listOfFile : listOfFiles) //####[105]####
+        {//####[105]####
+            if (listOfFile.isFile()) //####[106]####
+            {//####[107]####
+                videoNames.add(listOfFile.getName());//####[108]####
+                System.out.println(listOfFile.getName());//####[109]####
+            }//####[110]####
         }//####[111]####
-    }//####[111]####
-    public TaskID<Void> startFiltering(String filter) {//####[112]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[112]####
-        return startFiltering(filter, new TaskInfo());//####[112]####
-    }//####[112]####
-    public TaskID<Void> startFiltering(String filter, TaskInfo taskinfo) {//####[112]####
-        // ensure Method variable is set//####[112]####
-        if (__pt__startFiltering_String_method == null) {//####[112]####
-            __pt__startFiltering_String_ensureMethodVarSet();//####[112]####
-        }//####[112]####
-        taskinfo.setParameters(filter);//####[112]####
-        taskinfo.setMethod(__pt__startFiltering_String_method);//####[112]####
-        taskinfo.setInstance(this);//####[112]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[112]####
-    }//####[112]####
-    public TaskID<Void> startFiltering(TaskID<String> filter) {//####[112]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[112]####
-        return startFiltering(filter, new TaskInfo());//####[112]####
-    }//####[112]####
-    public TaskID<Void> startFiltering(TaskID<String> filter, TaskInfo taskinfo) {//####[112]####
-        // ensure Method variable is set//####[112]####
-        if (__pt__startFiltering_String_method == null) {//####[112]####
-            __pt__startFiltering_String_ensureMethodVarSet();//####[112]####
-        }//####[112]####
-        taskinfo.setTaskIdArgIndexes(0);//####[112]####
-        taskinfo.addDependsOn(filter);//####[112]####
-        taskinfo.setParameters(filter);//####[112]####
-        taskinfo.setMethod(__pt__startFiltering_String_method);//####[112]####
-        taskinfo.setInstance(this);//####[112]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[112]####
-    }//####[112]####
-    public TaskID<Void> startFiltering(BlockingQueue<String> filter) {//####[112]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[112]####
-        return startFiltering(filter, new TaskInfo());//####[112]####
-    }//####[112]####
-    public TaskID<Void> startFiltering(BlockingQueue<String> filter, TaskInfo taskinfo) {//####[112]####
-        // ensure Method variable is set//####[112]####
-        if (__pt__startFiltering_String_method == null) {//####[112]####
-            __pt__startFiltering_String_ensureMethodVarSet();//####[112]####
-        }//####[112]####
-        taskinfo.setQueueArgIndexes(0);//####[112]####
-        taskinfo.setIsPipeline(true);//####[112]####
-        taskinfo.setParameters(filter);//####[112]####
-        taskinfo.setMethod(__pt__startFiltering_String_method);//####[112]####
-        taskinfo.setInstance(this);//####[112]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[112]####
-    }//####[112]####
-    public void __pt__startFiltering(String filter) {//####[112]####
-        try {//####[113]####
-            TaskID id2 = addFilterToSubVideos(filter);//####[114]####
-            TaskIDGroup gg = new TaskIDGroup(1);//####[115]####
-            gg.add(id2);//####[116]####
-            gg.waitTillFinished();//####[117]####
-            System.out.println("** Finished...");//####[118]####
-        } catch (Exception ee) {//####[120]####
-        }//####[121]####
-    }//####[123]####
-//####[123]####
-//####[125]####
-    private static volatile Method __pt__addFilterToSubVideos_String_method = null;//####[125]####
-    private synchronized static void __pt__addFilterToSubVideos_String_ensureMethodVarSet() {//####[125]####
-        if (__pt__addFilterToSubVideos_String_method == null) {//####[125]####
-            try {//####[125]####
-                __pt__addFilterToSubVideos_String_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__addFilterToSubVideos", new Class[] {//####[125]####
-                    String.class//####[125]####
-                });//####[125]####
-            } catch (Exception e) {//####[125]####
-                e.printStackTrace();//####[125]####
-            }//####[125]####
+        subVideoNames = videoNames.iterator();//####[112]####
+    }//####[113]####
+//####[113]####
+//####[115]####
+    private static volatile Method __pt__startFiltering_String_method = null;//####[115]####
+    private synchronized static void __pt__startFiltering_String_ensureMethodVarSet() {//####[115]####
+        if (__pt__startFiltering_String_method == null) {//####[115]####
+            try {//####[115]####
+                __pt__startFiltering_String_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__startFiltering", new Class[] {//####[115]####
+                    String.class//####[115]####
+                });//####[115]####
+            } catch (Exception e) {//####[115]####
+                e.printStackTrace();//####[115]####
+            }//####[115]####
+        }//####[115]####
+    }//####[115]####
+    public TaskID<Void> startFiltering(String filter) {//####[116]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[116]####
+        return startFiltering(filter, new TaskInfo());//####[116]####
+    }//####[116]####
+    public TaskID<Void> startFiltering(String filter, TaskInfo taskinfo) {//####[116]####
+        // ensure Method variable is set//####[116]####
+        if (__pt__startFiltering_String_method == null) {//####[116]####
+            __pt__startFiltering_String_ensureMethodVarSet();//####[116]####
+        }//####[116]####
+        taskinfo.setParameters(filter);//####[116]####
+        taskinfo.setMethod(__pt__startFiltering_String_method);//####[116]####
+        taskinfo.setInstance(this);//####[116]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[116]####
+    }//####[116]####
+    public TaskID<Void> startFiltering(TaskID<String> filter) {//####[116]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[116]####
+        return startFiltering(filter, new TaskInfo());//####[116]####
+    }//####[116]####
+    public TaskID<Void> startFiltering(TaskID<String> filter, TaskInfo taskinfo) {//####[116]####
+        // ensure Method variable is set//####[116]####
+        if (__pt__startFiltering_String_method == null) {//####[116]####
+            __pt__startFiltering_String_ensureMethodVarSet();//####[116]####
+        }//####[116]####
+        taskinfo.setTaskIdArgIndexes(0);//####[116]####
+        taskinfo.addDependsOn(filter);//####[116]####
+        taskinfo.setParameters(filter);//####[116]####
+        taskinfo.setMethod(__pt__startFiltering_String_method);//####[116]####
+        taskinfo.setInstance(this);//####[116]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[116]####
+    }//####[116]####
+    public TaskID<Void> startFiltering(BlockingQueue<String> filter) {//####[116]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[116]####
+        return startFiltering(filter, new TaskInfo());//####[116]####
+    }//####[116]####
+    public TaskID<Void> startFiltering(BlockingQueue<String> filter, TaskInfo taskinfo) {//####[116]####
+        // ensure Method variable is set//####[116]####
+        if (__pt__startFiltering_String_method == null) {//####[116]####
+            __pt__startFiltering_String_ensureMethodVarSet();//####[116]####
+        }//####[116]####
+        taskinfo.setQueueArgIndexes(0);//####[116]####
+        taskinfo.setIsPipeline(true);//####[116]####
+        taskinfo.setParameters(filter);//####[116]####
+        taskinfo.setMethod(__pt__startFiltering_String_method);//####[116]####
+        taskinfo.setInstance(this);//####[116]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[116]####
+    }//####[116]####
+    public void __pt__startFiltering(String filter) {//####[116]####
+        try {//####[117]####
+            TaskID id2 = addFilterToSubVideos(filter);//####[118]####
+            TaskIDGroup gg = new TaskIDGroup(1);//####[119]####
+            gg.add(id2);//####[120]####
+            gg.waitTillFinished();//####[121]####
+            System.out.println("** Finished...");//####[122]####
+        } catch (Exception ee) {//####[124]####
         }//####[125]####
-    }//####[125]####
-    public TaskIDGroup<Void> addFilterToSubVideos(String filter) {//####[126]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[126]####
-        return addFilterToSubVideos(filter, new TaskInfo());//####[126]####
-    }//####[126]####
-    public TaskIDGroup<Void> addFilterToSubVideos(String filter, TaskInfo taskinfo) {//####[126]####
-        // ensure Method variable is set//####[126]####
-        if (__pt__addFilterToSubVideos_String_method == null) {//####[126]####
-            __pt__addFilterToSubVideos_String_ensureMethodVarSet();//####[126]####
-        }//####[126]####
-        taskinfo.setParameters(filter);//####[126]####
-        taskinfo.setMethod(__pt__addFilterToSubVideos_String_method);//####[126]####
-        taskinfo.setInstance(this);//####[126]####
-        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[126]####
-    }//####[126]####
-    public TaskIDGroup<Void> addFilterToSubVideos(TaskID<String> filter) {//####[126]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[126]####
-        return addFilterToSubVideos(filter, new TaskInfo());//####[126]####
-    }//####[126]####
-    public TaskIDGroup<Void> addFilterToSubVideos(TaskID<String> filter, TaskInfo taskinfo) {//####[126]####
-        // ensure Method variable is set//####[126]####
-        if (__pt__addFilterToSubVideos_String_method == null) {//####[126]####
-            __pt__addFilterToSubVideos_String_ensureMethodVarSet();//####[126]####
-        }//####[126]####
-        taskinfo.setTaskIdArgIndexes(0);//####[126]####
-        taskinfo.addDependsOn(filter);//####[126]####
-        taskinfo.setParameters(filter);//####[126]####
-        taskinfo.setMethod(__pt__addFilterToSubVideos_String_method);//####[126]####
-        taskinfo.setInstance(this);//####[126]####
-        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[126]####
-    }//####[126]####
-    public TaskIDGroup<Void> addFilterToSubVideos(BlockingQueue<String> filter) {//####[126]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[126]####
-        return addFilterToSubVideos(filter, new TaskInfo());//####[126]####
-    }//####[126]####
-    public TaskIDGroup<Void> addFilterToSubVideos(BlockingQueue<String> filter, TaskInfo taskinfo) {//####[126]####
-        // ensure Method variable is set//####[126]####
-        if (__pt__addFilterToSubVideos_String_method == null) {//####[126]####
-            __pt__addFilterToSubVideos_String_ensureMethodVarSet();//####[126]####
-        }//####[126]####
-        taskinfo.setQueueArgIndexes(0);//####[126]####
-        taskinfo.setIsPipeline(true);//####[126]####
-        taskinfo.setParameters(filter);//####[126]####
-        taskinfo.setMethod(__pt__addFilterToSubVideos_String_method);//####[126]####
-        taskinfo.setInstance(this);//####[126]####
-        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[126]####
-    }//####[126]####
-    public void __pt__addFilterToSubVideos(String filter) {//####[126]####
-        while (subVideoNames.hasNext()) //####[127]####
-        addFilter(new VideoFilter("SubVideos" + id + "/" + subVideoNames.next(), ui, id), filter);//####[128]####
-    }//####[129]####
+    }//####[127]####
+//####[127]####
 //####[129]####
-//####[131]####
-    private static volatile Method __pt__combine__method = null;//####[131]####
-    private synchronized static void __pt__combine__ensureMethodVarSet() {//####[131]####
-        if (__pt__combine__method == null) {//####[131]####
-            try {//####[131]####
-                __pt__combine__method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__combine", new Class[] {//####[131]####
-                    //####[131]####
-                });//####[131]####
-            } catch (Exception e) {//####[131]####
-                e.printStackTrace();//####[131]####
-            }//####[131]####
-        }//####[131]####
-    }//####[131]####
-    public TaskID<Void> combine() {//####[132]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[132]####
-        return combine(new TaskInfo());//####[132]####
-    }//####[132]####
-    public TaskID<Void> combine(TaskInfo taskinfo) {//####[132]####
-        // ensure Method variable is set//####[132]####
-        if (__pt__combine__method == null) {//####[132]####
-            __pt__combine__ensureMethodVarSet();//####[132]####
-        }//####[132]####
-        taskinfo.setParameters();//####[132]####
-        taskinfo.setMethod(__pt__combine__method);//####[132]####
-        taskinfo.setInstance(this);//####[132]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[132]####
-    }//####[132]####
-    public void __pt__combine() {//####[132]####
-        new VideoCombiner(outputFile, id).combine();//####[133]####
-        long endTime = System.currentTimeMillis();//####[134]####
-        long totalTime = endTime - startTime;//####[135]####
-        System.out.println("Duration: " + totalTime + " ms");//####[136]####
-    }//####[137]####
-//####[137]####
-//####[139]####
-    private static volatile Method __pt__recordSubVideoNames__method = null;//####[139]####
-    private synchronized static void __pt__recordSubVideoNames__ensureMethodVarSet() {//####[139]####
-        if (__pt__recordSubVideoNames__method == null) {//####[139]####
-            try {//####[139]####
-                __pt__recordSubVideoNames__method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__recordSubVideoNames", new Class[] {//####[139]####
-                    //####[139]####
-                });//####[139]####
-            } catch (Exception e) {//####[139]####
-                e.printStackTrace();//####[139]####
-            }//####[139]####
-        }//####[139]####
-    }//####[139]####
-    public TaskID<Void> recordSubVideoNames() {//####[140]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[140]####
-        return recordSubVideoNames(new TaskInfo());//####[140]####
-    }//####[140]####
-    public TaskID<Void> recordSubVideoNames(TaskInfo taskinfo) {//####[140]####
-        // ensure Method variable is set//####[140]####
-        if (__pt__recordSubVideoNames__method == null) {//####[140]####
-            __pt__recordSubVideoNames__ensureMethodVarSet();//####[140]####
-        }//####[140]####
-        taskinfo.setParameters();//####[140]####
-        taskinfo.setMethod(__pt__recordSubVideoNames__method);//####[140]####
-        taskinfo.setInstance(this);//####[140]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[140]####
-    }//####[140]####
-    public void __pt__recordSubVideoNames() {//####[140]####
-        try {//####[141]####
-            TaskID id4 = getVideoFiles();//####[142]####
-            TaskIDGroup gg = new TaskIDGroup(1);//####[143]####
-            gg.add(id4);//####[144]####
-            gg.waitTillFinished();//####[145]####
-            System.out.println("** Finished saving files ...");//####[146]####
-        } catch (Exception ee) {//####[148]####
-        }//####[149]####
-    }//####[150]####
-//####[150]####
-//####[153]####
-    @Override//####[153]####
-    protected Void doInBackground() throws Exception {//####[153]####
-        startTime = System.currentTimeMillis();//####[154]####
-        TaskID splited = startSpliting(file);//####[155]####
-        TaskInfo __pt__recordNames = new TaskInfo();//####[156]####
-//####[156]####
-        /*  -- ParaTask dependsOn clause for 'recordNames' -- *///####[156]####
-        __pt__recordNames.addDependsOn(splited);//####[156]####
-//####[156]####
-        TaskID recordNames = recordSubVideoNames(__pt__recordNames);//####[156]####
-        TaskInfo __pt__filtered = new TaskInfo();//####[157]####
+    private static volatile Method __pt__addFilterToSubVideos_String_method = null;//####[129]####
+    private synchronized static void __pt__addFilterToSubVideos_String_ensureMethodVarSet() {//####[129]####
+        if (__pt__addFilterToSubVideos_String_method == null) {//####[129]####
+            try {//####[129]####
+                __pt__addFilterToSubVideos_String_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__addFilterToSubVideos", new Class[] {//####[129]####
+                    String.class//####[129]####
+                });//####[129]####
+            } catch (Exception e) {//####[129]####
+                e.printStackTrace();//####[129]####
+            }//####[129]####
+        }//####[129]####
+    }//####[129]####
+    public TaskIDGroup<Void> addFilterToSubVideos(String filter) {//####[130]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[130]####
+        return addFilterToSubVideos(filter, new TaskInfo());//####[130]####
+    }//####[130]####
+    public TaskIDGroup<Void> addFilterToSubVideos(String filter, TaskInfo taskinfo) {//####[130]####
+        // ensure Method variable is set//####[130]####
+        if (__pt__addFilterToSubVideos_String_method == null) {//####[130]####
+            __pt__addFilterToSubVideos_String_ensureMethodVarSet();//####[130]####
+        }//####[130]####
+        taskinfo.setParameters(filter);//####[130]####
+        taskinfo.setMethod(__pt__addFilterToSubVideos_String_method);//####[130]####
+        taskinfo.setInstance(this);//####[130]####
+        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[130]####
+    }//####[130]####
+    public TaskIDGroup<Void> addFilterToSubVideos(TaskID<String> filter) {//####[130]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[130]####
+        return addFilterToSubVideos(filter, new TaskInfo());//####[130]####
+    }//####[130]####
+    public TaskIDGroup<Void> addFilterToSubVideos(TaskID<String> filter, TaskInfo taskinfo) {//####[130]####
+        // ensure Method variable is set//####[130]####
+        if (__pt__addFilterToSubVideos_String_method == null) {//####[130]####
+            __pt__addFilterToSubVideos_String_ensureMethodVarSet();//####[130]####
+        }//####[130]####
+        taskinfo.setTaskIdArgIndexes(0);//####[130]####
+        taskinfo.addDependsOn(filter);//####[130]####
+        taskinfo.setParameters(filter);//####[130]####
+        taskinfo.setMethod(__pt__addFilterToSubVideos_String_method);//####[130]####
+        taskinfo.setInstance(this);//####[130]####
+        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[130]####
+    }//####[130]####
+    public TaskIDGroup<Void> addFilterToSubVideos(BlockingQueue<String> filter) {//####[130]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[130]####
+        return addFilterToSubVideos(filter, new TaskInfo());//####[130]####
+    }//####[130]####
+    public TaskIDGroup<Void> addFilterToSubVideos(BlockingQueue<String> filter, TaskInfo taskinfo) {//####[130]####
+        // ensure Method variable is set//####[130]####
+        if (__pt__addFilterToSubVideos_String_method == null) {//####[130]####
+            __pt__addFilterToSubVideos_String_ensureMethodVarSet();//####[130]####
+        }//####[130]####
+        taskinfo.setQueueArgIndexes(0);//####[130]####
+        taskinfo.setIsPipeline(true);//####[130]####
+        taskinfo.setParameters(filter);//####[130]####
+        taskinfo.setMethod(__pt__addFilterToSubVideos_String_method);//####[130]####
+        taskinfo.setInstance(this);//####[130]####
+        return TaskpoolFactory.getTaskpool().enqueueMulti(taskinfo, Runtime.getRuntime().availableProcessors());//####[130]####
+    }//####[130]####
+    public void __pt__addFilterToSubVideos(String filter) {//####[130]####
+        while (subVideoNames.hasNext()) //####[131]####
+        addFilter(new VideoFilter("SubVideos/" + subVideoNames.next(), ui, id), filter);//####[132]####
+    }//####[133]####
+//####[133]####
+//####[135]####
+    private static volatile Method __pt__combine__method = null;//####[135]####
+    private synchronized static void __pt__combine__ensureMethodVarSet() {//####[135]####
+        if (__pt__combine__method == null) {//####[135]####
+            try {//####[135]####
+                __pt__combine__method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__combine", new Class[] {//####[135]####
+                    //####[135]####
+                });//####[135]####
+            } catch (Exception e) {//####[135]####
+                e.printStackTrace();//####[135]####
+            }//####[135]####
+        }//####[135]####
+    }//####[135]####
+    public TaskID<Void> combine() {//####[136]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[136]####
+        return combine(new TaskInfo());//####[136]####
+    }//####[136]####
+    public TaskID<Void> combine(TaskInfo taskinfo) {//####[136]####
+        // ensure Method variable is set//####[136]####
+        if (__pt__combine__method == null) {//####[136]####
+            __pt__combine__ensureMethodVarSet();//####[136]####
+        }//####[136]####
+        taskinfo.setParameters();//####[136]####
+        taskinfo.setMethod(__pt__combine__method);//####[136]####
+        taskinfo.setInstance(this);//####[136]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[136]####
+    }//####[136]####
+    public void __pt__combine() {//####[136]####
+        new VideoCombiner(outputFile, id).combine();//####[137]####
+        long endTime = System.currentTimeMillis();//####[138]####
+        long totalTime = endTime - startTime;//####[139]####
+        System.out.println("Duration: " + totalTime + " ms");//####[140]####
+    }//####[141]####
+//####[141]####
+//####[143]####
+    private static volatile Method __pt__recordSubVideoNames__method = null;//####[143]####
+    private synchronized static void __pt__recordSubVideoNames__ensureMethodVarSet() {//####[143]####
+        if (__pt__recordSubVideoNames__method == null) {//####[143]####
+            try {//####[143]####
+                __pt__recordSubVideoNames__method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__recordSubVideoNames", new Class[] {//####[143]####
+                    //####[143]####
+                });//####[143]####
+            } catch (Exception e) {//####[143]####
+                e.printStackTrace();//####[143]####
+            }//####[143]####
+        }//####[143]####
+    }//####[143]####
+    public TaskID<Void> recordSubVideoNames() {//####[144]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[144]####
+        return recordSubVideoNames(new TaskInfo());//####[144]####
+    }//####[144]####
+    public TaskID<Void> recordSubVideoNames(TaskInfo taskinfo) {//####[144]####
+        // ensure Method variable is set//####[144]####
+        if (__pt__recordSubVideoNames__method == null) {//####[144]####
+            __pt__recordSubVideoNames__ensureMethodVarSet();//####[144]####
+        }//####[144]####
+        taskinfo.setParameters();//####[144]####
+        taskinfo.setMethod(__pt__recordSubVideoNames__method);//####[144]####
+        taskinfo.setInstance(this);//####[144]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[144]####
+    }//####[144]####
+    public void __pt__recordSubVideoNames() {//####[144]####
+        try {//####[145]####
+            TaskID id4 = getVideoFiles();//####[146]####
+            TaskIDGroup gg = new TaskIDGroup(1);//####[147]####
+            gg.add(id4);//####[148]####
+            gg.waitTillFinished();//####[149]####
+            System.out.println("** Finished saving files ...");//####[150]####
+        } catch (Exception ee) {//####[152]####
+        }//####[153]####
+    }//####[154]####
+//####[154]####
 //####[157]####
-        /*  -- ParaTask dependsOn clause for 'filtered' -- *///####[157]####
-        __pt__filtered.addDependsOn(recordNames);//####[157]####
-//####[157]####
-        TaskID filtered = startFiltering(filter, __pt__filtered);//####[157]####
-        TaskInfo __pt__combined = new TaskInfo();//####[158]####
-//####[158]####
-        /*  -- ParaTask dependsOn clause for 'combined' -- *///####[158]####
-        __pt__combined.addDependsOn(filtered);//####[158]####
-//####[158]####
-        boolean isEDT = GuiThread.isEventDispatchThread();//####[158]####
-//####[158]####
-//####[158]####
-        /*  -- ParaTask notify clause for 'combined' -- *///####[158]####
-        try {//####[158]####
-            Method __pt__combined_slot_0 = null;//####[158]####
-            __pt__combined_slot_0 = ParaTaskHelper.getDeclaredMethod(getClass(), "done", new Class[] {});//####[158]####
-            if (false) done(); //-- ParaTask uses this dummy statement to ensure the slot exists (otherwise Java compiler will complain)//####[158]####
-            __pt__combined.addSlotToNotify(new Slot(__pt__combined_slot_0, this, false));//####[158]####
-//####[158]####
-        } catch(Exception __pt__e) { //####[158]####
-            System.err.println("Problem registering method in clause:");//####[158]####
-            __pt__e.printStackTrace();//####[158]####
-        }//####[158]####
-        TaskID combined = combine(__pt__combined);//####[158]####
-        combined.waitTillFinished();//####[159]####
-        return null;//####[160]####
-    }//####[161]####
-}//####[161]####
+    @Override//####[157]####
+    protected Void doInBackground() throws Exception {//####[157]####
+        startTime = System.currentTimeMillis();//####[158]####
+        TaskID split = startSpliting(file);//####[159]####
+        split.waitTillFinished();//####[160]####
+        TaskInfo __pt__recordNames = new TaskInfo();//####[161]####
+//####[161]####
+        /*  -- ParaTask dependsOn clause for 'recordNames' -- *///####[161]####
+        __pt__recordNames.addDependsOn(split);//####[161]####
+//####[161]####
+        TaskID recordNames = recordSubVideoNames(__pt__recordNames);//####[161]####
+        TaskInfo __pt__filtered = new TaskInfo();//####[162]####
+//####[162]####
+        /*  -- ParaTask dependsOn clause for 'filtered' -- *///####[162]####
+        __pt__filtered.addDependsOn(recordNames);//####[162]####
+//####[162]####
+        TaskID filtered = startFiltering(filter, __pt__filtered);//####[162]####
+        TaskInfo __pt__combined = new TaskInfo();//####[163]####
+//####[163]####
+        /*  -- ParaTask dependsOn clause for 'combined' -- *///####[163]####
+        __pt__combined.addDependsOn(filtered);//####[163]####
+//####[163]####
+        boolean isEDT = GuiThread.isEventDispatchThread();//####[163]####
+//####[163]####
+//####[163]####
+        /*  -- ParaTask notify clause for 'combined' -- *///####[163]####
+        try {//####[163]####
+            Method __pt__combined_slot_0 = null;//####[163]####
+            __pt__combined_slot_0 = ParaTaskHelper.getDeclaredMethod(getClass(), "done", new Class[] {});//####[163]####
+            if (false) done(); //-- ParaTask uses this dummy statement to ensure the slot exists (otherwise Java compiler will complain)//####[163]####
+            __pt__combined.addSlotToNotify(new Slot(__pt__combined_slot_0, this, false));//####[163]####
+//####[163]####
+        } catch(Exception __pt__e) { //####[163]####
+            System.err.println("Problem registering method in clause:");//####[163]####
+            __pt__e.printStackTrace();//####[163]####
+        }//####[163]####
+        TaskID combined = combine(__pt__combined);//####[163]####
+        combined.waitTillFinished();//####[164]####
+        return null;//####[165]####
+    }//####[166]####
+}//####[166]####

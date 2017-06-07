@@ -9,6 +9,10 @@ How to use libraries and APIs we have used in our implementation
   Download the static build for the corresponding system from: https://ffmpeg.org/download.html
   Place the ffmpeg.exe from the bin library and include in filepath.
   
+  Using JavaFX:
+  Install JavaFX through the following link
+  http://www.eclipse.org/efxclipse/install.html
+  
 IMPORTANT NOTES:
 1) Preview for some filters (invert colours and mirror) has been disabled as displaying the filtered image was sometimes causing memory issues. Despite this fact you can still filter the video using these filters.
 2) Some filter buttons have not been assigned a filter label (they do not do anything). This is due to the JavaCV filtering implementation limiting us to only being able to use some filters. (More information about this in the report). These filters include:

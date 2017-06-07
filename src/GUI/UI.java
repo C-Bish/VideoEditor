@@ -27,7 +27,7 @@ public class UI extends JFrame implements Runnable {
                     buttonPluginPixelize, buttonThresholding, buttonPluginHalftone, buttonPluginMinimum, 
                     buttonPluginMaximum, buttonPluginVintage, buttonPluginTelevision, buttonPluginEdgeDetector,
                     buttonPluginDifference, buttonOpenFile, buttonSave, buttonCancel, buttonParallel;
-    private JLabel labelCurrentFilter, labelProcessing;
+    private JLabel labelCurrentFilter, labelProcessing, fileName;
     private Thread  thread;
     private int vidWidth, vidHeight;
     private boolean playing, saving, parallel;
@@ -65,7 +65,6 @@ public class UI extends JFrame implements Runnable {
         processingInfo = new ArrayList<JLabel>();
         imageproc = new ImageProcessing();
         setLayout(new BorderLayout());
- 
     }
      
     private void loadGUI() {
@@ -74,6 +73,7 @@ public class UI extends JFrame implements Runnable {
         // Labels
         labelCurrentFilter = new JLabel("Current filter: None");
         labelProcessing = new JLabel("");
+        fileName = new JLabel("Current file: None");
          
         // Buttons 
         ButtonHandler l_handler = new ButtonHandler();
@@ -91,10 +91,10 @@ public class UI extends JFrame implements Runnable {
         buttonPluginPixelize = new JButton("Pixelize"); 
         buttonThresholding = new JButton("Thresholding"); 
         buttonPluginHalftone = new JButton("Halftone"); 
-        buttonPluginMinimum = new JButton("Minimum"); 
-        buttonPluginMaximum = new JButton("Maximum");         
+        buttonPluginMinimum = new JButton("Darker"); 
+        buttonPluginMaximum = new JButton("Brighter");         
         buttonPluginVintage = new JButton("Vintage"); 
-        buttonPluginTelevision = new JButton("Television"); 
+        buttonPluginTelevision = new JButton("Mirror"); 
         buttonPluginEdgeDetector = new JButton("Edge Detector"); 
         buttonPluginDifference = new JButton("Difference"); 
         
@@ -145,8 +145,9 @@ public class UI extends JFrame implements Runnable {
         filterOptions.add(buttonPluginEdgeDetector); 
         filterOptions.add(buttonPluginDifference);
         
-        panelLabels = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelLabels = new JPanel(new GridLayout(2,1));
         panelLabels.add(labelCurrentFilter);
+        panelLabels.add(fileName);
         
         panelProgress = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         panelProgress.add(labelProcessing);
@@ -196,19 +197,13 @@ public class UI extends JFrame implements Runnable {
 		} else {
 			// If the user chooses a file
 			file = fileChooser.getSelectedFile();
-			
-			// Creating a resized video for the player
-			/*String commandLine = "ffmpeg.exe -i "+file.getName()+" -ss  -c copy -t  SubVideos\\sub_video_.mp4";
-			try {
-				Runtime.getRuntime().exec(commandLine);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}*/
-			//File resizedVideo = new File("resized");
+			fileName.setText("Current file: " + file.getName());
 			
 			media = new Media(file.toURI().toString());
 	        player = new MediaPlayer(media);
 	        view = new MediaView(player);
+	        view.setFitHeight(400);
+	        view.setFitWidth(720);
 	        BorderPane root = new BorderPane();
 	        root.getChildren().add(view);
 	        
@@ -222,10 +217,10 @@ public class UI extends JFrame implements Runnable {
 	        
 	        container.add(panelPlayer, BorderLayout.CENTER);
 	       
-			pic = imageproc.getFrame(file, 100);
+			pic = imageproc.getFrame(file, 1000);
 			if(pic != null) {
-				vidHeight = pic.getHeight();
-				vidWidth = pic.getWidth();
+				vidHeight = (int)view.getFitHeight();//pic.getHeight();
+				vidWidth = (int)view.getFitWidth();//pic.getWidth();
 				resized = imageproc.scale(pic,vidWidth/2,vidHeight/2);
 				ImageIcon image = new ImageIcon(resized);
 				JLabel picLabel = new JLabel(image);
@@ -233,7 +228,7 @@ public class UI extends JFrame implements Runnable {
 				panelPlayer.setSize(vidWidth,vidHeight);
 				System.out.println("width: " + vidWidth+ ", height: " + vidHeight);
 				panelPlayer.setBorder(null);
-				vidWidth = pic.getWidth() + pic.getWidth()/2;
+				vidWidth = vidWidth + vidWidth/2;
 				setSize(vidWidth+120,vidHeight+100);
 				container.remove(panelPreview);
 				container.add(panelPreview, BorderLayout.EAST);
@@ -243,7 +238,7 @@ public class UI extends JFrame implements Runnable {
 				panelPreview = new JPanel(new BorderLayout());
 				panelPreview.add(picLabel, BorderLayout.NORTH);
 				panelPreview.add(panelProcessing, BorderLayout.SOUTH);
-				panelPreview.setSize(pic.getWidth()/2, pic.getHeight());
+				panelPreview.setSize(vidWidth/2, vidHeight);
 				container.add(panelPreview, BorderLayout.EAST);
 				panelPreview.revalidate();
 				panelPreview.repaint();
@@ -290,18 +285,20 @@ public class UI extends JFrame implements Runnable {
     }
     
     public void updatePreview() {
-    	filteredPreview = imageproc.filterImage(pic, filter);
-    	resized = imageproc.scale(filteredPreview,pic.getWidth()/2,pic.getHeight()/2);
-		ImageIcon image = new ImageIcon(resized);
-		JLabel picLabel = new JLabel(image);
-		container.remove(panelPreview);
-		panelPreview = new JPanel(new BorderLayout());
-		panelPreview.add(picLabel, BorderLayout.NORTH);
-		panelPreview.add(panelProcessing, BorderLayout.SOUTH);
-		panelPreview.setSize(pic.getWidth()/2, pic.getHeight());
-		container.add(panelPreview, BorderLayout.EAST);
-		panelPreview.revalidate();
-		panelPreview.repaint();
+    	if (pic != null) {
+	    	filteredPreview = imageproc.filterImage(pic, filter);
+	    	resized = imageproc.scale(filteredPreview,vidWidth/2,vidHeight/2);
+			ImageIcon image = new ImageIcon(resized);
+			JLabel picLabel = new JLabel(image);
+			container.remove(panelPreview);
+			panelPreview = new JPanel(new BorderLayout());
+			panelPreview.add(picLabel, BorderLayout.NORTH);
+			panelPreview.add(panelProcessing, BorderLayout.SOUTH);
+			panelPreview.setSize(pic.getWidth()/2, pic.getHeight());
+			container.add(panelPreview, BorderLayout.EAST);
+			panelPreview.revalidate();
+			panelPreview.repaint();
+    	}
     }
      
     private class ButtonHandler implements ActionListener {
@@ -451,12 +448,16 @@ public class UI extends JFrame implements Runnable {
                 labelCurrentFilter.setText("Current filter: Halftone"); 
             } 
             else if(a_event.getSource() == buttonPluginMinimum){ 
-            	filterName = "Minimum";
-                labelCurrentFilter.setText("Current filter: Minimum"); 
+            	filterName = "Darker";
+                labelCurrentFilter.setText("Current filter: Darker");
+                filter = "colorlevels=rimin=0.058:gimin=0.058:bimin=0.058";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginMaximum){ 
-            	filterName = "Maximum";
-                labelCurrentFilter.setText("Current filter: Maximum"); 
+            	filterName = "Brighter";
+                labelCurrentFilter.setText("Current filter: Brighter");
+                filter = "colorlevels=rimax=0.902:gimax=0.902:bimax=0.902";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginVintage){ 
             	filterName = "Vintage";
@@ -465,13 +466,15 @@ public class UI extends JFrame implements Runnable {
                 updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginTelevision){ 
-            	filterName = "Television";
-                labelCurrentFilter.setText("Current filter: Television"); 
+            	filterName = "Mirror";
+                labelCurrentFilter.setText("Current filter: Mirror");
+                filter = "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right] hstack";
+                updatePreview();
             } 
             else if(a_event.getSource() == buttonPluginEdgeDetector){
             	filterName = "Edge Detector";
                 labelCurrentFilter.setText("Current filter: Edge Detector");
-                filter = "edgedetect=mode=colormix:high=0";
+                filter = "scale=w=200:h=100";
                 updatePreview();
             }     
             else if(a_event.getSource() == buttonPluginDifference){
